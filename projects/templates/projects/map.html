@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Development Projects Map</title>
+  <link href="https://cdn.jsdelivr.net/npm/maplibre-gl@4/dist/maplibre-gl.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4/dist/maplibre-gl.js"></script>
+  <style>
+    body { margin: 0; }
+    #map { position: absolute; inset: 0; }
+  </style>
+</head>
+<body>
+<div id="map"></div>
+<script>
+  const map = new maplibregl.Map({
+    container: "map",
+    style: "https://tiles.openfreemap.org/styles/positron", // free, no API key
+    center: [25.28, 54.69],  // Vilnius, [longitude, latitude]
+    zoom: 11
+  });
+  map.addControl(new maplibregl.NavigationControl());
+
+  map.on("load", () => {
+    map.addSource("projects", {
+      type: "geojson",
+      data: "{% url 'projects_geojson' %}",
+      cluster: true,
+      clusterRadius: 50
+    });
+
+    // Clusters
+    map.addLayer({
+      id: "clusters", type: "circle", source: "projects",
+      filter: ["has", "point_count"],
+      paint: { "circle-color": "#1f5fa8", "circle-radius": ["step", ["get", "point_count"], 16, 10, 22, 50, 30] }
+    });
+    map.addLayer({
+      id: "cluster-count", type: "symbol", source: "projects",
+      filter: ["has", "point_count"],
+      layout: { "text-field": "{point_count_abbreviated}", "text-size": 12 },
+      paint: { "text-color": "#fff" }
+    });
+
+    // Individual projects
+    map.addLayer({
+      id: "points", type: "circle", source: "projects",
+      filter: ["!", ["has", "point_count"]],
+      paint: { "circle-color": "#e0592a", "circle-radius": 7,
+               "circle-stroke-width": 2, "circle-stroke-color": "#fff" }
+    });
+
+    // Popup on click
+    map.on("click", "points", (e) => {
+      const p = e.features[0].properties;
+      new maplibregl.Popup()
+        .setLngLat(e.features[0].geometry.coordinates)
+        .setHTML(`<strong>${p.name}</strong><br>${p.developer}<br>${p.status}`)
+        .addTo(map);
+    });
+
+    // Zoom into a cluster on click
+    map.on("click", "clusters", async (e) => {
+      const f = e.features[0];
+      const zoom = await map.getSource("projects").getClusterExpansionZoom(f.properties.cluster_id);
+      map.easeTo({ center: f.geometry.coordinates, zoom });
+    });
+
+    ["points", "clusters"].forEach(l => {
+      map.on("mouseenter", l, () => map.getCanvas().style.cursor = "pointer");
+      map.on("mouseleave", l, () => map.getCanvas().style.cursor = "");
+    });
+  });
+</script>
+</body>
+</html>
