@@ -401,9 +401,10 @@ async function initMap() {
   map.addLayer(place({
     id: "country-line", type: "line", source: "countries",
     paint: {
-      "line-color": ["case", ["boolean", ["feature-state", "selected"], false], css("--sel"), "#0b0b0b"],
-      "line-width": ["case", ["boolean", ["feature-state", "selected"], false], 2, 0.6],
+      "line-color": ["case", ["boolean", ["feature-state", "selected"], false], css("--sel"), "#FFFFFF"],
+      "line-width": ["case", ["boolean", ["feature-state", "selected"], false], 0, 0.05],
       "line-emissive-strength": 1,
+      "line-opacity": 0.9,
     },
   }), beforeId);
   paintMap();
@@ -859,11 +860,7 @@ async function poll() {
 })();
 </script>
 {% if ga_id %}
-<div id="consent" role="dialog" aria-label="Cookie consent">
-  <p>This page uses Google Analytics cookies to count visits. Allow?</p>
-  <button type="button" class="yes" data-c="granted">Allow</button>
-  <button type="button" data-c="denied">Decline</button>
-</div>
+
 <script>
   (function () {
     const box = document.getElementById("consent");

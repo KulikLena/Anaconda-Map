@@ -71,9 +71,23 @@ python manage.py collectstatic --noinput
 
 Then press **Reload** on the Web tab and open `https://YOURNAME.pythonanywhere.com`.
 
-## 6. Updating the data later
+## 6. Updating the site later (git)
 
-Upload the new `Main data file.xlsx` over the old one (Files tab), then press **Reload**.
+The live site runs from a clone of https://github.com/KulikLena/Anaconda-Map in `~/anaconda`
+(the old zip copy is kept as `~/anaconda_zip_backup`).
+
+1. On your laptop: edit code or `Main data file.xlsx`, then **Commit** and **Push** in GitHub Desktop.
+2. On PythonAnywhere, in a Bash console:
+
+   ```bash
+   cd ~/anaconda && git pull
+   DJANGO_DEBUG=0 ~/.virtualenvs/anaconda/bin/python manage.py collectstatic --noinput   # only if static files changed
+   ```
+
+3. Press **Reload** on the Web tab.
+
+Secrets (Mapbox token, secret key) are not in git: locally they live in `local_settings.py`,
+on the server in the WSGI file.
 
 ## Checklist before posting on LinkedIn
 
