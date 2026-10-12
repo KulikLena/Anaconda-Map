@@ -1,0 +1,881 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Real Estate Fund Assets</title>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.8.0/mapbox-gl.css" rel="stylesheet">
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.8.0/mapbox-gl.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --page: #0b0b0b; --surface: #161616; --border: #2a2a28; --raised: #222220;
+      --ink: #f5f5f2; --ink-2: #c3c2b7; --ink-3: #8a8984;
+      --grid: #2a2a28; --axis: #3a3a37;
+      /* Acid highlights: Lithuania, euro area average, selected country */
+      --lt: #c6ff1a; --ea: #ff2bd6; --sel: #ffffff;
+      --other: #4a4a46; --nodata: #262624;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+           background: var(--page); color: var(--ink); }
+    header { padding: 12px 20px 4px; }
+    h1 { font-size: 20px; margin: 0 0 2px; font-weight: 600; }
+    .sub { color: var(--ink-2); margin: 0; }
+    main { display: grid; grid-template-columns: minmax(0, 3fr) minmax(360px, 2fr); gap: 16px; padding: 8px 20px 16px;
+           height: calc(100vh - var(--hdr, 110px)); min-height: 620px; }
+    .left { display: flex; flex-direction: column; gap: 12px; min-width: 0; min-height: 0; }
+    .map-card { position: relative; flex: 1; min-height: 300px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; }
+    #map { position: absolute; inset: 0; border-radius: 8px; }
+    .side { display: flex; flex-direction: column; gap: 12px; min-width: 0; min-height: 0; }
+    .controls { padding: 10px 16px; }
+    .year-row { display: flex; align-items: center; gap: 12px; }
+    #play { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border);
+            background: var(--surface); cursor: pointer; font-size: 14px; color: var(--ink); }
+    #play:hover { background: var(--raised); border-color: var(--lt); }
+    #year { flex: 1; accent-color: var(--sel); }
+    #yearLabel { font-size: 28px; font-weight: 600; min-width: 64px; text-align: right; font-variant-numeric: tabular-nums; }
+    .note { color: var(--ink-3); font-size: 12px; min-height: 16px; margin-top: 4px; }
+    .mode { display: inline-flex; margin-top: 8px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+    .mode button { background: transparent; color: var(--ink-2); border: 0; padding: 5px 12px; font: inherit; font-size: 12px; cursor: pointer; }
+    .mode button + button { border-left: 1px solid var(--border); }
+    .mode button.on { background: var(--raised); color: var(--lt); font-weight: 600; }
+    .mode button:disabled { opacity: .4; cursor: default; }
+    .legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 6px; font-size: 12px; color: var(--ink-2); }
+    .legend .sw { display: inline-block; width: 14px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+    .legend-title { color: var(--ink-2); font-weight: 600; }
+    .takeaway { margin: 6px 0 0; font-size: 15px; color: var(--ink); }
+    .takeaway b.lt { color: var(--lt); } .takeaway b.ea { color: var(--ea); }
+    .credit { margin: 2px 0 0; font-size: 12px; color: var(--ink-3); }
+    .live[hidden] { display: none; }
+    .live { color: var(--ink-3); font-size: 12px; margin: 4px 0 0; }
+    .live .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--lt); box-shadow: 0 0 6px var(--lt); margin-right: 5px; vertical-align: 0; }
+    .live.err .dot { background: #ff3b3b; box-shadow: 0 0 6px #ff3b3b; }
+    .live.flash { color: var(--ink); }
+    .notes { font-size: 12px; color: var(--ink-2); margin-top: 6px; }
+    .notes summary { cursor: pointer; color: var(--ink-2); }
+    .notes[hidden] { display: none; }
+    .disclaimer { margin-top: 6px; padding: 8px 10px; background: var(--raised); border-radius: 6px; max-height: 30vh; overflow: auto; }
+    .rank-card { padding: 12px 16px; flex: none; }
+    .rank-wrap { position: relative; margin-top: 6px; transition: height 400ms ease; }
+    .rk { position: absolute; left: 0; right: 0; top: 0; display: grid; grid-template-columns: 150px minmax(0, 1fr);
+          align-items: center; font-size: 11px; cursor: pointer;
+          transition: transform 650ms cubic-bezier(.4,0,.2,1), opacity 300ms ease; will-change: transform; }
+    .rk-name { text-align: right; padding-right: 8px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rk-track { display: flex; align-items: center; gap: 4px; padding-right: 44px; }
+    .rk-bar { flex: none; height: 10px; border-radius: 2px; background: var(--other); min-width: 1px;
+              transition: width 650ms cubic-bezier(.4,0,.2,1), background-color 200ms; }
+    .rk-val { color: var(--ink-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .rk:hover .rk-name { color: var(--ink); }
+    .rk.lt .rk-bar { background: var(--lt); }  .rk.lt .rk-name { color: var(--lt); font-weight: 600; }  .rk.lt .rk-val { color: var(--ink); font-weight: 600; }
+    .rk.ea .rk-bar { background: var(--ea); }  .rk.ea .rk-name { color: var(--ea); font-weight: 600; }  .rk.ea .rk-val { color: var(--ink); font-weight: 600; }
+    .rk.sel .rk-bar { background: var(--sel); } .rk.sel .rk-name { color: var(--sel); font-weight: 600; }
+    .star { color: var(--ink-3); font-weight: 600; }
+    .rank-foot { font-size: 11px; color: var(--ink-3); margin-top: 6px; }
+    .rank-foot[hidden] { display: none; }
+    .rk.gone { opacity: 0; pointer-events: none; }
+    .chart-card { padding: 12px 16px; flex: 1; display: flex; flex-direction: column; min-height: 220px; }
+    .chart-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+    .chart-head h2 { font-size: 15px; margin: 0; font-weight: 600; }
+    .chart-head label { font-size: 12px; color: var(--ink-2); white-space: nowrap; }
+    .series-key { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--ink-2); margin: 6px 0 4px; }
+    .series-key i { display: inline-block; width: 16px; height: 0; border-top: 3px solid; margin-right: 5px; vertical-align: 3px; }
+    .chart-wrap { position: relative; flex: 1; min-height: 160px; }
+    footer { padding: 0 20px 20px; color: var(--ink-3); font-size: 12px; }
+    .mapboxgl-popup-content { font: 13px/1.45 system-ui, sans-serif; padding: 10px 12px;
+                              background: var(--raised); color: var(--ink); border: 1px solid var(--border);
+                              box-shadow: 0 6px 24px rgba(0,0,0,.6); }
+    .mapboxgl-popup-close-button { color: var(--ink-2); }
+    .mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip, .mapboxgl-popup-anchor-bottom-left .mapboxgl-popup-tip,
+    .mapboxgl-popup-anchor-bottom-right .mapboxgl-popup-tip { border-top-color: var(--raised); }
+    .mapboxgl-popup-anchor-top .mapboxgl-popup-tip, .mapboxgl-popup-anchor-top-left .mapboxgl-popup-tip,
+    .mapboxgl-popup-anchor-top-right .mapboxgl-popup-tip { border-bottom-color: var(--raised); }
+    .mapboxgl-popup-anchor-left .mapboxgl-popup-tip { border-right-color: var(--raised); }
+    .mapboxgl-popup-anchor-right .mapboxgl-popup-tip { border-left-color: var(--raised); }
+    .mapboxgl-ctrl-group { background: var(--raised); }
+    .mapboxgl-ctrl-group button + button { border-top-color: var(--border); }
+    .mapboxgl-ctrl-group .mapboxgl-ctrl-icon { filter: invert(1); }
+    .mapboxgl-ctrl-attrib.mapboxgl-compact { background: var(--raised); color: var(--ink-3); }
+    #year { accent-color: var(--lt); }
+    .rk.lt .rk-bar { box-shadow: 0 0 10px rgba(198,255,26,.45); }
+    .rk.ea .rk-bar { box-shadow: 0 0 10px rgba(255,43,214,.45); }
+    .rk.sel .rk-bar { box-shadow: 0 0 10px rgba(255,255,255,.35); }
+    .pop-title { font-weight: 600; font-size: 14px; }
+    .pop-big { font-size: 20px; font-weight: 600; }
+    .pop-muted { color: var(--ink-2); }
+    .pop-note { color: var(--ink-2); margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); font-size: 12px; }
+    #status { position: absolute; top: 12px; left: 12px; background: var(--surface); padding: 6px 10px;
+              border: 1px solid var(--border); border-radius: 6px; font-size: 12px; display: none; }
+    @media (max-width: 900px) {
+      main { grid-template-columns: 1fr; padding: 8px 16px 16px; height: auto; }
+      header, footer { padding-left: 16px; padding-right: 16px; }
+      .map-card { height: 60vh; min-height: 360px; flex: none; }
+      .chart-card { min-height: 340px; }
+      .rk { grid-template-columns: 120px minmax(0, 1fr); }
+    }
+    @media (max-width: 600px) {
+      h1 { font-size: 16px; line-height: 1.3; }
+      .sub { font-size: 13px; }
+      .takeaway { font-size: 14px; }
+      #yearLabel { font-size: 22px; min-width: 52px; }
+      .legend { font-size: 11px; }
+      .rk { grid-template-columns: 104px minmax(0, 1fr); }
+      .rk-track { padding-right: 40px; }
+    }
+  </style>
+{% if ga_id %}
+  <style>
+    #consent { position: fixed; left: 16px; right: 16px; bottom: 16px; max-width: 560px; margin: 0 auto; z-index: 50;
+               background: var(--raised); color: var(--ink-2); border: 1px solid var(--border); border-radius: 8px;
+               padding: 12px 14px; font-size: 13px; display: none; gap: 10px; align-items: center; flex-wrap: wrap;
+               box-shadow: 0 8px 30px rgba(0,0,0,.6); }
+    #consent p { margin: 0; flex: 1 1 260px; }
+    #consent button { font: inherit; font-size: 12px; border-radius: 6px; padding: 6px 12px; cursor: pointer;
+                      border: 1px solid var(--border); background: transparent; color: var(--ink-2); }
+    #consent button.yes { background: var(--lt); color: #0b0b0b; border-color: var(--lt); font-weight: 600; }
+  </style>
+  <script>
+    // Google Analytics 4 with Consent Mode: nothing is stored until the visitor accepts.
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    gtag("consent", "default", { analytics_storage: "denied", ad_storage: "denied",
+                                 ad_user_data: "denied", ad_personalization: "denied" });
+    let gaChoice = null;
+    try { gaChoice = localStorage.getItem("gaConsent"); } catch (e) {}
+    if (gaChoice === "granted") gtag("consent", "update", { analytics_storage: "granted" });
+    gtag("js", new Date());
+    gtag("config", "{{ ga_id|escapejs }}", { anonymize_ip: true });
+  </script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga_id|urlencode }}"></script>
+{% endif %}
+</head>
+<body>
+<header>
+  <h1 id="title">Total assets of real estate investment funds registered in each country, % of GDP</h1>
+  <p class="sub" id="subtitle">Funds are counted where they are registered, not where their property is. Click a country for details.</p>
+  <p class="takeaway" id="takeaway"></p>
+  <p class="credit">Sources: ECB, EPRA, Eurostat · Analysis: Elena Kulik, Colliers Lithuania</p>
+  <p class="live" id="live"></p>
+</header>
+
+<main>
+  <div class="left">
+    <div class="card controls">
+      <div class="year-row">
+        <button id="play" aria-label="Play">&#9654;</button>
+        <input id="year" type="range" step="1" aria-label="Year">
+        <div id="yearLabel">–</div>
+      </div>
+      <div class="note" id="yearNote"></div>
+      <div class="mode" role="group" aria-label="Measure">
+        <button type="button" data-mode="funds" class="on">Funds</button>
+        <button type="button" data-mode="combined">Funds + listed real estate</button>
+      </div>
+      <div class="legend" id="legend"></div>
+      <details class="notes" id="notes" hidden>
+        <summary id="notesSummary">Coverage notes</summary>
+        <div class="disclaimer" id="disclaimer"></div>
+      </details>
+      <details class="notes" id="about">
+        <summary>How to read this</summary>
+        <div class="disclaimer">
+          <strong>Where funds are registered, not where they invest.</strong> ECB statistics count a fund in its
+          country of registration. The chart shows the size of each country's real estate fund industry, not how much
+          of its property is held by funds. Luxembourg (4–5× GDP) is left out for this reason; Ireland and the
+          Netherlands are affected to a lesser degree.<br><br>
+          <strong>Funds only, not listed property companies.</strong> REITs and listed property companies are not
+          investment funds and are not counted. Countries where property is mostly held that way (e.g. Belgium, Spain,
+          Sweden) look smaller than their market is.<br><br>
+          <strong>Mixed sources.</strong> Countries marked <span class="star">*</span> have asset figures from a source
+          other than the ECB. Definitions may differ, so compare them with care.<br><br>
+          <strong>Breaks in the series.</strong> Some jumps (e.g. Finland 2014, Germany 2015, Spain 2014) probably reflect
+          changes in reporting or coverage rather than market moves.<br><br>
+          <strong>Funds + listed real estate view.</strong> Adds the market value of REITs and listed property
+          companies (EPRA Total Markets Table, year end, converted from USD at the ECB rate) to fund total assets.
+          Available 2019–2025 (earlier EPRA year-end tables are not publicly available). The two parts measure different things (fund figures include borrowed money, market
+          value does not), funds may own shares of listed companies (some double counting), and a country with no
+          fund figure counts its funds as 0. Read it as an indication of overall size, not an exact total.<br><br>
+          <strong>Total assets.</strong> Figures include property bought with borrowed money, so funds that borrow more
+          look bigger. Assets are year-end stocks; the latest year uses the latest quarter and the previous year's GDP.
+        </div>
+      </details>
+    </div>
+    <div class="card map-card">
+      <div id="map"></div>
+      <div id="status"></div>
+    </div>
+  </div>
+
+  <div class="side">
+    <div class="card rank-card">
+      <div class="chart-head">
+        <h2>Ranking, <span id="rankYear">–</span></h2>
+        <label>% of GDP</label>
+      </div>
+      <div class="rank-wrap" id="rankWrap"></div>
+      <div class="rank-foot" id="rankFoot"><span class="star">*</span> asset figures not from the ECB; may not be comparable</div>
+    </div>
+
+    <div class="card chart-card">
+      <div class="chart-head">
+        <h2>% of GDP over time</h2>
+      </div>
+      <div class="series-key" id="seriesKey"></div>
+      <div class="chart-wrap"><canvas id="chart"></canvas></div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Fund assets: ECB Data Portal, Investment fund statistics (IVF),
+  real estate funds, total assets, end of period, unless another source is noted for a country; GDP: Eurostat,
+  current prices. Year values use December stocks; the latest year uses the latest quarter and the
+  previous year's GDP. Euro area average = sum of fund assets ÷ sum of GDP of the countries that
+  used the euro in that year, excluding Luxembourg. Listed real estate: EPRA Total Markets Table (year end), converted
+  from USD at ECB rates. Analysis: Elena Kulik, Colliers Lithuania.
+</footer>
+
+<script>
+const DATA_URL = "{% url 'funds:data_api' %}";
+const VERSION_URL = "{% url 'funds:version_api' %}";
+const START_YEAR = 2008;           // timeline starts here
+const POLL_MS = 2000;              // how often to check the workbook for changes
+const LIVE = {{ live|yesno:"true,false" }};   // false on the published site: frozen data, no polling
+const MAPBOX_TOKEN = "{{ mapbox_token|escapejs }}";
+const MAP_STYLE = "{{ map_style|escapejs }}";
+const GEO_URL = "{% static 'funds/eu_countries.geojson' %}";
+const FOCUS = "LT";                 // always emphasised
+const AGGREGATE = "U2";             // euro area line, not on the map
+// Countries without ECB data that get an explanatory note (popup + note box).
+const NOT_COVERED = {
+  PL: "Outside the euro area; no real estate fund series for Poland in the ECB Data Portal.",
+  SE: "Outside the euro area, so not covered by ECB investment fund statistics. A large part of Swedish property investment runs through listed property companies rather than funds.",
+};
+// Countries removed from the dashboard entirely, with the reason shown in their pop-up.
+const DROPPED = {
+  GB: "Not included: Eurostat has no UK GDP after 2019 and the fund figures have no comparable source.",
+};
+// Notes shown in a country's pop-up (funds view / combined view).
+const FUND_NOTES = {
+  FI: "Series break in 2014: the jump from €0.4bn to €5.7bn reflects a change in ECB reporting, not market growth.",
+  ES: "Series break in 2014: the fall from €5.6bn to €1.7bn reflects a change in reporting, not a market collapse.",
+};
+const COMBINED_NOTES = {
+  MT: "Outlier: Malta's listed property companies (about €2bn) are large relative to its small economy.",
+};
+// Countries left off the colour scale and the chart, with the reason shown to the reader.
+const EXCLUDED = {
+  LU: "Funds are registered there for tax and regulatory reasons, and they invest across Europe.",
+};
+// Acid electric blue: bright cyan for the lowest share, deepening to electric blue for the highest.
+const RAMP = ["#00ecff", "#00c3ff", "#0094ff", "#0a66ff", "#1f3bff", "#2a00ff"];
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+const fmtPct = v => v == null ? "–" : (v < 1 ? v.toFixed(2) : v.toFixed(1)) + "%";
+const fmtEur = v => v == null ? "–" : "€" + Math.round(v).toLocaleString("en-GB") + " m";
+
+let DATA, YEARS, BREAKS, year, selected = null, timer = null, chart, map;
+
+function status(msg) {
+  const el = document.getElementById("status");
+  el.textContent = msg || ""; el.style.display = msg ? "block" : "none";
+}
+
+/* --- Colour classes: quantiles over all years so colours compare across time --- */
+function niceRound(v) {
+  if (v === 0) return 0;
+  const p = Math.pow(10, Math.floor(Math.log10(v)) - 1);
+  return Math.round(v / p) * p;
+}
+function computeBreaks() {
+  const vals = [];
+  for (const [code, c] of Object.entries(DATA.countries)) {
+    if (code === AGGREGATE || EXCLUDED[code]) continue;
+    for (const v of Object.values(c.values)) if (v.share != null && v.share > 0) vals.push(v.share);
+  }
+  vals.sort((a, b) => a - b);
+  if (!vals.length) return [];
+  const q = p => vals[Math.min(vals.length - 1, Math.floor(p * vals.length))];
+  const br = [];
+  for (let i = 1; i < RAMP.length; i++) {
+    const b = niceRound(q(i / RAMP.length));
+    if (!br.length || b > br[br.length - 1]) br.push(b);
+  }
+  return br;   // n breaks -> n+1 classes
+}
+function colorFor(v) {
+  let i = 0;
+  while (i < BREAKS.length && v >= BREAKS[i]) i++;
+  return RAMP[Math.round(i * (RAMP.length - 1) / BREAKS.length)];
+}
+function renderLegend() {
+  const el = document.getElementById("legend");
+  let html = '<span class="legend-title">Share of GDP</span>';
+  const edges = [null, ...BREAKS, null];
+  for (let i = 0; i < edges.length - 1; i++) {
+    const lo = edges[i], hi = edges[i + 1];
+    const label = lo == null ? `< ${fmtPct(hi)}` : hi == null ? `≥ ${fmtPct(lo)}` : `${fmtPct(lo)}–${fmtPct(hi)}`;
+    const col = RAMP[Math.round(i * (RAMP.length - 1) / BREAKS.length)];
+    html += `<span><span class="sw" style="background:${col}"></span>${label}</span>`;
+  }
+  html += `<span><span class="sw" style="background:transparent;box-shadow:inset 0 0 0 1px ${css("--ink-3")}"></span>No data</span>`;
+  el.innerHTML = html;
+}
+
+/* --- Map --- */
+function paintMap() {
+  if (!map || !map.getSource("countries")) return;
+  for (const f of GEO.features) {
+    const iso = f.properties.iso;
+    const v = EXCLUDED[iso] ? null : DATA.countries[iso]?.values[year];
+    map.setFeatureState({ source: "countries", id: iso },
+      { fill: v && v.share != null ? colorFor(v.share) : null, selected: iso === selected });
+  }
+}
+
+let GEO;
+async function initMap() {
+  if (!MAPBOX_TOKEN) {
+    status("Map needs a Mapbox access token: set MAPBOX_TOKEN in config/settings.py (or as an environment variable) and restart the server.");
+    return;
+  }
+  mapboxgl.accessToken = MAPBOX_TOKEN;
+  map = new mapboxgl.Map({
+    container: "map",
+    style: MAP_STYLE,
+    projection: "mercator",          // flat map, not the 3D globe
+    cooperativeGestures: window.matchMedia("(max-width: 900px)").matches,  // phones: page scrolls, two fingers move the map
+    center: [14, 52], zoom: 3.3, minZoom: 2.5, maxZoom: 7,
+    attributionControl: false,
+  });
+  map.addControl(new mapboxgl.AttributionControl({ compact: true }));
+  map.addControl(new mapboxgl.NavigationControl({ showCompass: false }));
+  map.on("error", e => { if (e?.error?.status === 401) status("Mapbox rejected the access token (check MAPBOX_TOKEN)."); });
+
+  // Add our layers as soon as the style is parsed. Waiting for "load" can take very long with
+  // Mapbox Standard styles (3D trees, buildings), which left the countries uncoloured.
+  await new Promise(r => {
+    if (map.isStyleLoaded()) return r();
+    map.once("style.load", r);
+    const t = setInterval(() => { if (map.isStyleLoaded()) { clearInterval(t); r(); } }, 200);
+  });
+  try { map.setConfigProperty("basemap", "show3dObjects", false); } catch (e) {}
+  // Where to insert the country colours. Classic styles: above every base layer (land, water,
+  // roads, boundaries) and below the top block of labels. Mapbox Standard styles expose no
+  // layer list; there the "middle" slot puts them under the labels.
+  const layers = map.getStyle().layers || [];
+  let beforeId, slot;
+  if (layers.length) {
+    let lastBase = -1;
+    layers.forEach((l, i) => { if (l.type !== "symbol") lastBase = i; });
+    beforeId = layers.slice(lastBase + 1).find(l => l.type === "symbol")?.id;
+  } else {
+    slot = "middle";
+  }
+  const place = layer => slot ? { ...layer, slot } : layer;
+
+  map.addSource("countries", { type: "geojson", data: GEO, promoteId: "iso" });
+  // Neon glow: a wide, blurred line in each country's own colour, drawn under the fill so it
+  // spills out over the dark sea and the no-data countries (like the glowing bars in the charts).
+  map.addLayer(place({
+    id: "country-glow", type: "line", source: "countries",
+    layout: { "line-join": "round" },
+    paint: {
+      "line-color": ["coalesce", ["feature-state", "fill"], "rgba(0,0,0,0)"],
+      "line-width": 8,
+      "line-blur": 15,
+      "line-opacity": 0.5,
+      "line-emissive-strength": 1,
+    },
+  }), beforeId);
+  map.addLayer(place({
+    id: "country-fill", type: "fill", source: "countries",
+    paint: {
+      "fill-color": ["coalesce", ["feature-state", "fill"], "rgba(0,0,0,0)"],   // no data: fully transparent, base map shows through
+      "fill-opacity": 0.9,
+      "fill-emissive-strength": 1,   // keep colours true under the style's lighting
+    },
+  }), beforeId);
+  map.addLayer(place({
+    id: "country-line", type: "line", source: "countries",
+    paint: {
+      "line-color": ["case", ["boolean", ["feature-state", "selected"], false], css("--sel"), "#0b0b0b"],
+      "line-width": ["case", ["boolean", ["feature-state", "selected"], false], 2, 0.6],
+      "line-emissive-strength": 1,
+    },
+  }), beforeId);
+  paintMap();
+
+  map.on("click", "country-fill", e => {
+    const f = e.features[0];
+    selectCountry(f.properties.iso);
+    showPopup(f.properties.iso, f.properties.name, e.lngLat);
+  });
+  map.on("mouseenter", "country-fill", () => map.getCanvas().style.cursor = "pointer");
+  map.on("mouseleave", "country-fill", () => map.getCanvas().style.cursor = "");
+  paintMap();
+}
+
+// Countries whose asset figures do not come from the ECB series (definitions may differ).
+function nonEcb(code) {
+  const c = DATA.countries[code];
+  if (!c || code === AGGREGATE || /ECB/i.test(c.asset_source || "")) return false;
+  // In the combined view only flag countries whose fund part is actually included.
+  return MODE !== "combined" || c.values[year]?.funds != null;
+}
+
+// Extra line shown in the pop-up for these countries (same size as the text above it).
+const SOLIDARITY = { BY: "Жыве Беларусь!", UA: "Слава Україні!" };
+
+function euroLine(iso) {
+  const ea = DATA.countries[AGGREGATE]?.values[year];
+  if (!ea || iso === AGGREGATE) return "";
+  return `<div class="pop-muted">Euro area average (excl. LU): ${fmtPct(ea.share)}</div>`;
+}
+
+let popup;
+function showPopup(iso, name, lngLat) {
+  const c = DATA.countries[iso];
+  const v = c?.values[year];
+  let html = `<div class="pop-title">${c?.name || name}, ${year}</div>`;
+  if (NOT_COVERED[iso] && (!v || v.share == null)) {
+    html = `<div class="pop-title">${name}</div><div class="pop-muted">No data. ${NOT_COVERED[iso]}</div>`;
+  } else if (EXCLUDED[iso]) {
+    html += `<div class="pop-muted">Not shown on the map or chart.</div>`;
+    if (v && v.share != null) html += `<div>${fmtEur(v.assets)} total assets, ${(v.share / 100).toFixed(1)}× annual GDP</div>`;
+    html += `<div class="pop-muted">${EXCLUDED[iso]}</div>`;
+  } else if (DROPPED[iso]) {
+    html = `<div class="pop-title">${name}</div><div class="pop-muted">${DROPPED[iso]}</div>`;
+  } else if (!c) {
+    html += `<div class="pop-muted">Not in the data file</div>`;
+    if (SOLIDARITY[iso]) html += `<div class="pop-muted">${SOLIDARITY[iso]}</div>`;
+  } else if (!v) {
+    html += `<div class="pop-muted">No data for ${year}</div>`;
+  } else if (v.zero) {
+    html += `<div class="pop-muted">No real estate funds reported (0)</div>`;
+  } else if (v.share == null) {
+    html += `<div>${fmtEur(v.assets)} total assets</div><div class="pop-muted">No GDP for ${year}, so no share</div>`;
+  } else {
+    const parts = MODE === "combined"
+      ? `<div>${fmtEur(v.assets)} in total</div>
+         <div class="pop-muted">Funds ${v.funds == null ? "no data (counted as 0)" : fmtEur(v.funds)}</div>
+         <div class="pop-muted">Listed real estate ${fmtEur(v.listed)}</div>`
+      : `<div>${fmtEur(v.assets)} total assets</div>`;
+    html += `<div class="pop-big">${fmtPct(v.share)} of GDP</div>
+             ${parts}
+             ${euroLine(iso)}
+             <div class="pop-muted">GDP ${fmtEur(v.gdp)}${v.gdp_year && v.gdp_year != year ? ` (${v.gdp_year})` : ""}</div>
+             <div class="pop-muted">${MODE === "combined" ? "As of end-" + year : `Assets as of ${v.period}${v.partial ? " (latest quarter)" : ""}`}</div>
+             ${nonEcb(iso)
+               ? `<div class="pop-muted"><span class="star">*</span> Asset figures not from the ECB${c.asset_source ? ` (${c.asset_source})` : ""}; may not be comparable with other countries</div>`
+               : c.asset_source ? `<div class="pop-muted">Source: ${c.asset_source}</div>` : ""}
+             ${(MODE === "combined" ? COMBINED_NOTES : FUND_NOTES)[iso] ? `<div class="pop-note">${(MODE === "combined" ? COMBINED_NOTES : FUND_NOTES)[iso]}</div>` : ""}`;
+  }
+  if (popup) popup.remove();
+  popup = new mapboxgl.Popup({ maxWidth: "260px" }).setLngLat(lngLat).setHTML(html).addTo(map);
+  popup.on("close", () => { if (selected === iso) selectCountry(null); });
+}
+
+/* --- Chart --- */
+// Value labels at the end of the Lithuania and euro area lines.
+const endLabels = {
+  id: "endLabels",
+  afterDatasetsDraw(c) {
+    const ctx = c.ctx;
+    c.data.datasets.forEach((ds, i) => {
+      if (ds.code !== FOCUS && ds.code !== AGGREGATE) return;
+      const meta = c.getDatasetMeta(i);
+      let k = ds.data.length - 1;
+      while (k >= 0 && ds.data[k] == null) k--;
+      if (k < 0) return;
+      const pt = meta.data[k];
+      ctx.save();
+      ctx.font = "600 11px system-ui, sans-serif";
+      ctx.fillStyle = ds.code === FOCUS ? css("--lt") : css("--ea");
+      ctx.textAlign = "right"; ctx.textBaseline = "bottom";
+      ctx.fillText(fmtPct(ds.data[k]), pt.x - 2, pt.y - 4);
+      ctx.restore();
+    });
+  },
+};
+const yearLine = {
+  id: "yearLine",
+  afterDatasetsDraw(c) {
+    const x = c.scales.x.getPixelForValue(YEARS.indexOf(year));
+    const { top, bottom } = c.chartArea, ctx = c.ctx;
+    ctx.save(); ctx.strokeStyle = css("--ink-3"); ctx.setLineDash([3, 3]); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, bottom); ctx.stroke(); ctx.restore();
+  },
+};
+
+function styleFor(code) {
+  if (code === FOCUS)      return { borderColor: css("--lt"),  borderWidth: 3,   order: 0, pointRadius: 0 };
+  if (code === selected)   return { borderColor: css("--sel"), borderWidth: 2.5, order: 1, pointRadius: 0 };
+  if (code === AGGREGATE)  return { borderColor: css("--ea"),  borderWidth: 2.5, order: 2, borderDash: [6, 3], pointRadius: 0 };
+  return { borderColor: "#34342f", borderWidth: 1, order: 10, pointRadius: 0 };
+}
+
+function buildChart() {
+  if (chart) chart.destroy();
+  const datasets = Object.entries(DATA.countries).filter(([code]) => !EXCLUDED[code]).map(([code, c]) => ({
+    code, label: c.name,
+    data: YEARS.map(y => c.values[y]?.share ?? null),
+    spanGaps: false, tension: 0.2, pointHoverRadius: 4,
+    ...styleFor(code),
+  }));
+  chart = new Chart(document.getElementById("chart"), {
+    type: "line",
+    data: { labels: YEARS.map(String), datasets },
+    plugins: [yearLine, endLabels],
+    options: {
+      maintainAspectRatio: false, animation: false,
+      interaction: { mode: "nearest", intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.dataset.label}: ${fmtPct(ctx.parsed.y)}`,
+            afterLabel: ctx => {
+              if (ctx.dataset.code !== AGGREGATE) return "";
+              const v = DATA.countries[AGGREGATE].values[YEARS[ctx.dataIndex]];
+              return v?.missing?.length ? `Not included (no data): ${v.missing.join(", ")}` : "";
+            },
+          },
+          filter: (item, i, items) => i === 0,
+        },
+      },
+      scales: {
+        x: { grid: { display: false }, border: { color: css("--axis") }, ticks: { color: css("--ink-3"), maxRotation: 0, autoSkipPadding: 12 } },
+        y: { type: "linear", beginAtZero: true, grid: { color: css("--grid") }, border: { display: false },
+             ticks: { color: css("--ink-3"), callback: v => v + "%" },
+             title: { display: true, text: "% of GDP", color: css("--ink-3") } },
+      },
+      onClick: (e, els) => {
+        if (!els.length) return;
+        const code = chart.data.datasets[els[0].datasetIndex].code;
+        if (code !== AGGREGATE) selectCountry(code === selected ? null : code);
+      },
+    },
+  });
+  renderSeriesKey();
+}
+
+function restyleChart() {
+  chart.data.datasets.forEach(ds => {
+    delete ds.borderDash;
+    Object.assign(ds, styleFor(ds.code));
+  });
+  chart.update();
+  renderSeriesKey();
+}
+
+function renderSeriesKey() {
+  const items = [[css("--lt"), DATA.countries[FOCUS]?.name || "Lithuania", "solid"]];
+  if (selected && selected !== FOCUS && DATA.countries[selected]) items.push([css("--sel"), DATA.countries[selected].name, "solid"]);
+  if (DATA.countries[AGGREGATE]) items.push([css("--ea"), DATA.countries[AGGREGATE].name + ", weighted average", "dashed"]);
+  items.push([css("--other"), "Other countries", "solid"]);
+  document.getElementById("seriesKey").innerHTML = items
+    .map(([c, l, s]) => `<span><i style="border-top-color:${c};border-top-style:${s}"></i>${l}</span>`).join("");
+}
+
+/* --- State --- */
+/* --- Ranking (bar race): one row per country; rows slide to their new rank when the year changes --- */
+const rankRowsEl = {};   // code -> row element, kept between years so rows can move
+
+function rankRows() {
+  const rows = [];
+  for (const [code, c] of Object.entries(DATA.countries)) {
+    if (EXCLUDED[code]) continue;
+    const v = c.values[year];
+    if (v && v.share != null) rows.push({ code, name: code === AGGREGATE ? (innerWidth < 600 ? "Euro area avg" : "Euro area avg (excl. LU)") : c.name, share: v.share });
+  }
+  return rows.sort((a, b) => b.share - a.share);
+}
+
+function barHeight(n) {
+  // Fit the ranking into ~45% of the right column so the line chart stays visible without scrolling.
+  const side = document.querySelector(".side");
+  const avail = side && side.clientHeight > 400 ? side.clientHeight * 0.45 - 40 : 18 * n;
+  return Math.max(11, Math.min(18, Math.floor(avail / Math.max(n, 1))));
+}
+
+function renderRank() {
+  const wrap = document.getElementById("rankWrap");
+  const rows = rankRows();
+  const h = barHeight(rows.length);
+  const max = rows.length ? Math.max(...rows.map(r => r.share)) : 1;
+  document.getElementById("rankYear").textContent = year;
+  wrap.style.height = rows.length * h + "px";
+
+  const seen = new Set();
+  rows.forEach((r, i) => {
+    let el = rankRowsEl[r.code];
+    if (!el) {
+      el = document.createElement("div");
+      el.className = "rk gone";
+      el.innerHTML = '<span class="rk-name"></span><div class="rk-track"><div class="rk-bar"></div><span class="rk-val"></span></div>';
+      el.style.transform = `translateY(${rows.length * h}px)`;   // new rows rise from the bottom
+      el.addEventListener("click", () => { if (r.code !== AGGREGATE) selectCountry(r.code === selected ? null : r.code); });
+      wrap.appendChild(el);
+      rankRowsEl[r.code] = el;
+      el.getBoundingClientRect();   // commit start position so the move animates
+    }
+    seen.add(r.code);
+    el.style.height = h + "px";
+    el.style.transform = `translateY(${i * h}px)`;
+    el.classList.remove("gone");
+    el.classList.toggle("lt", r.code === FOCUS);
+    el.classList.toggle("ea", r.code === AGGREGATE);
+    el.classList.toggle("sel", r.code === selected && r.code !== FOCUS);
+    el.querySelector(".rk-name").textContent = r.name + (nonEcb(r.code) ? " *" : "");
+    el.title = `${r.name}: ${fmtPct(r.share)} of GDP`;
+    el.querySelector(".rk-bar").style.width = (r.share / max * 100) + "%";
+    el.querySelector(".rk-bar").style.height = Math.max(6, h - 4) + "px";
+    el.querySelector(".rk-val").textContent = fmtPct(r.share);
+  });
+  document.getElementById("rankFoot").hidden = !rows.some(r => nonEcb(r.code));
+  for (const [code, el] of Object.entries(rankRowsEl)) {
+    if (!seen.has(code)) {                       // no data this year: fade out at the bottom
+      el.classList.add("gone");
+      el.style.transform = `translateY(${rows.length * h}px)`;
+      el.querySelector(".rk-bar").style.width = "0%";
+    }
+  }
+}
+window.addEventListener("resize", () => { if (DATA) renderRank(); });
+
+function setYear(y) {
+  year = y;
+  document.getElementById("year").value = y;
+  const latest = DATA.countries[FOCUS]?.values[y] || Object.values(DATA.countries).map(c => c.values[y]).find(Boolean);
+  const partial = latest?.partial;
+  document.getElementById("yearLabel").textContent = y;
+  const ea = DATA.countries[AGGREGATE]?.values[y];
+  const notes = [];
+  if (partial) notes.push(`Partial year: assets as of ${latest.period}`);
+  if (MODE === "funds" && (y === 2013 || y === 2014))
+    notes.push("Finland and Spain: series breaks in 2014 (reporting changes)");
+  if (MODE === "combined") {
+    const noFunds = Object.entries(DATA.countries)
+      .filter(([c, x]) => c !== AGGREGATE && !EXCLUDED[c] && x.values[y] && x.values[y].funds == null)
+      .map(([, x]) => x.name);
+    notes.push(`Listed real estate: EPRA, year end, ${YEARS[0]}–${YEARS[YEARS.length - 1]}`);
+    if (noFunds.length) notes.push(`No fund figure, listed only: ${noFunds.join(", ")}`);
+  }
+  if (ea?.missing?.length) notes.push(`Euro area average excludes ${ea.missing.map(c => DATA.countries[c]?.name || c).join(", ")} (no data for ${y})`);
+  document.getElementById("yearNote").textContent = notes.join(". ");
+  paintMap();
+  renderDisclaimer();
+  if (chart) chart.draw();
+  renderRank();
+  if (popup && popup.isOpen() && selected) {
+    const f = GEO.features.find(f => f.properties.iso === selected);
+    showPopup(selected, f?.properties.name || selected, popup.getLngLat());
+  }
+}
+
+// Countries whose explanation is only shown in their map pop-up, not in the coverage notes.
+const POPUP_ONLY = ["LU", "GB", "SE"];
+
+function renderDisclaimer() {
+  const parts = Object.entries(EXCLUDED).map(([code, reason]) => {
+    const c = DATA.countries[code];
+    if (!c || POPUP_ONLY.includes(code)) return "";
+    const v = c.values[year];
+    const size = v && v.share != null
+      ? ` Real estate fund assets there (${fmtEur(v.assets)}) are ${(v.share / 100).toFixed(1)} times its annual GDP in ${year}.`
+      : "";
+    return `<strong>${c.name} is not shown.</strong> ${reason}${size}`;
+  });
+  for (const [code, note] of Object.entries(NOT_COVERED)) {
+    if (POPUP_ONLY.includes(code) || DATA.countries[code]?.values[year]?.share != null) continue;
+    const name = GEO?.features.find(f => f.properties.iso === code)?.properties.name || code;
+    parts.push(`<strong>${name}: no data.</strong> ${note}`);
+  }
+  const shown = parts.filter(Boolean);
+  document.getElementById("disclaimer").innerHTML = shown.join("<br><br>");
+  document.getElementById("notes").hidden = !shown.length;
+  document.getElementById("notesSummary").textContent = `Coverage notes (${shown.length})`;
+}
+
+function selectCountry(code) {
+  selected = code;
+  paintMap();
+  if (chart) restyleChart();
+  renderRank();
+}
+
+function togglePlay() {
+  const btn = document.getElementById("play");
+  if (timer) { clearInterval(timer); timer = null; btn.innerHTML = "&#9654;"; btn.ariaLabel = "Play"; return; }
+  if (year === YEARS[YEARS.length - 1]) setYear(YEARS[0]);
+  btn.innerHTML = "&#10074;&#10074;"; btn.ariaLabel = "Pause";
+  timer = setInterval(() => {
+    const i = YEARS.indexOf(year);
+    if (i >= YEARS.length - 1) return togglePlay();
+    setYear(YEARS[i + 1]);
+  }, 800);
+}
+
+function setLive(msg, isErr, flash) {
+  const el = document.getElementById("live");
+  el.innerHTML = `<span class="dot"></span>${msg}`;
+  el.classList.toggle("err", !!isErr);
+  if (flash) { el.classList.add("flash"); setTimeout(() => el.classList.remove("flash"), 1500); }
+}
+const hhmmss = () => new Date().toLocaleTimeString("en-GB");
+
+let VERSION = null, LAST_REFRESH = null, RAW = null, MODE = "combined";
+const MODES = {
+  funds: {
+    title: "Total assets of real estate investment funds registered in each country, % of GDP",
+    sub: "Funds are counted where they are registered, not where their property is. Click a country for details.",
+  },
+  combined: {
+    title: "Real estate held through funds and listed companies, % of GDP",
+    sub: "Fund total assets (ECB) + market value of REITs and listed property companies (EPRA). Click a country for details.",
+  },
+};
+const liveMsg = () => `Data as of October 2026`;
+
+async function loadData() {
+  const r = await fetch(DATA_URL, { cache: "no-store" });
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.error || "Could not load data");
+  // Timeline starts at START_YEAR.
+  for (const m of [d, d.combined].filter(Boolean)) {
+    for (const code of Object.keys(DROPPED)) delete m.countries[code];
+    m.years = m.years.filter(y => y >= START_YEAR);
+    for (const c of Object.values(m.countries))
+      for (const y of Object.keys(c.values)) if (+y < START_YEAR) delete c.values[y];
+  }
+  // Funds view: a reported 0 means no funds of this type, shown as "no data" rather than as the lowest class.
+  for (const [code, c] of Object.entries(d.countries))
+    for (const v of Object.values(c.values))
+      if (code !== AGGREGATE && v.assets === 0) { v.share = null; v.zero = true; }
+  return d;
+}
+
+function applyData(d) {
+  RAW = d;
+  VERSION = d.version;
+  return render();
+}
+
+function setMode(m) {
+  if (m === "combined" && !RAW?.combined) return;
+  MODE = m;
+  document.querySelectorAll(".mode button").forEach(b => b.classList.toggle("on", b.dataset.mode === MODE));
+  try { localStorage.setItem("fundsMode", MODE); } catch (e) {}
+  render();
+}
+
+function render() {
+  const d = RAW;
+  if (MODE === "combined" && !d.combined) MODE = "funds";
+  const btn = document.querySelector('.mode button[data-mode="combined"]');
+  btn.disabled = !d.combined;
+  btn.title = d.combined ? "" : "Add the listed real estate tables to the data file to enable this view";
+  document.querySelectorAll(".mode button").forEach(b => b.classList.toggle("on", b.dataset.mode === MODE));
+  DATA = MODE === "combined" ? { ...d.combined, file: d.file } : d;
+  document.getElementById("title").textContent = MODES[MODE].title;
+  document.getElementById("subtitle").textContent = MODES[MODE].sub;
+  YEARS = DATA.years;
+  renderTakeaway();
+  if (!YEARS.length) { status("No data found in the data file"); return false; }
+  status("");
+  BREAKS = computeBreaks();
+  renderLegend();
+  const slider = document.getElementById("year");
+  slider.min = YEARS[0]; slider.max = YEARS[YEARS.length - 1];
+  const keep = YEARS.includes(year) ? year : YEARS[YEARS.length - 1];
+  buildChart();
+  setYear(keep);
+  return true;
+}
+
+// One-line headline: Lithuania and the euro area, first vs last full year of the current view.
+function renderTakeaway() {
+  const el = document.getElementById("takeaway");
+  const lt = DATA.countries[FOCUS]?.values || {}, ea = DATA.countries[AGGREGATE]?.values || {};
+  const full = YEARS.filter(y => lt[y]?.share != null && ea[y]?.share != null && !lt[y].partial);
+  if (full.length < 2) { el.textContent = ""; return; }
+  const y0 = full[0], y1 = full[full.length - 1];
+  el.innerHTML = `<b class="lt">Lithuania</b> ${fmtPct(lt[y0].share)} → <b class="lt">${fmtPct(lt[y1].share)}</b> of GDP (${y0}–${y1}).
+    <b class="ea">Euro area average</b> ${fmtPct(ea[y0].share)} → <b class="ea">${fmtPct(ea[y1].share)}</b>.`;
+  fitHeader();
+}
+function fitHeader() {
+  const h = document.querySelector("header").offsetHeight;
+  document.documentElement.style.setProperty("--hdr", (h + 4) + "px");
+}
+window.addEventListener("resize", fitHeader);
+
+async function poll() {
+  try {
+    const r = await fetch(VERSION_URL, { cache: "no-store" });
+    const v = await r.json();
+    if (v.version && v.version !== VERSION) {
+      applyData(await loadData());
+      LAST_REFRESH = hhmmss();
+      setLive(liveMsg(), !!v.error, true);
+    } else if (v.error) {
+      setLive(`${v.error}. Showing the last saved version.`, true);
+    } else {
+      setLive(liveMsg());
+    }
+  } catch (e) {
+    setLive("Server not reachable. Is runserver still running?", true);
+  }
+  setTimeout(poll, POLL_MS);
+}
+
+(async function main() {
+  status("Loading data…");
+  let d;
+  try {
+    [d, GEO] = await Promise.all([
+      loadData(),
+      fetch(GEO_URL).then(r => { if (!r.ok) throw new Error("Boundaries file missing: run python manage.py fetch_funds --refresh-boundaries"); return r.json(); }),
+    ]);
+  } catch (e) { status(e.message); setLive(e.message, true); if (LIVE) setTimeout(poll, POLL_MS); return; }
+
+  document.getElementById("year").addEventListener("input", e => setYear(+e.target.value));
+  document.querySelectorAll(".mode button").forEach(b => b.addEventListener("click", () => setMode(b.dataset.mode)));
+  try { if (localStorage.getItem("fundsMode") === "funds") MODE = "funds"; } catch (e) {}
+  document.getElementById("play").addEventListener("click", togglePlay);
+  applyData(d);
+  LAST_REFRESH = hhmmss();
+  if (LIVE) {
+    setLive(liveMsg());
+    setTimeout(poll, POLL_MS);   // start polling even if the base map is slow to load
+  } else {
+    setLive(liveMsg());
+    fitHeader();
+  }
+  await initMap();
+})();
+</script>
+{% if ga_id %}
+<div id="consent" role="dialog" aria-label="Cookie consent">
+  <p>This page uses Google Analytics cookies to count visits. Allow?</p>
+  <button type="button" class="yes" data-c="granted">Allow</button>
+  <button type="button" data-c="denied">Decline</button>
+</div>
+<script>
+  (function () {
+    const box = document.getElementById("consent");
+    if (!gaChoice) box.style.display = "flex";
+    box.querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
+      const c = b.dataset.c;
+      try { localStorage.setItem("gaConsent", c); } catch (e) {}
+      if (c === "granted") gtag("consent", "update", { analytics_storage: "granted" });
+      box.style.display = "none";
+    }));
+  })();
+</script>
+{% endif %}
+</body>
+</html>

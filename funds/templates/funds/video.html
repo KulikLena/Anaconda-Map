@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Bar race video frame</title>
+<style>
+  html, body { margin: 0; background: #0b0b0b; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<!-- 1080×1350 LinkedIn video frame. Rendered frame by frame: window.renderAt(seconds). -->
+<canvas id="c" width="1080" height="1350"></canvas>
+<script>
+const DATA_URL = "{% url 'funds:data_api' %}";
+const FOCUS = "LT", AGG = "U2";
+const DROP = ["GB", "LU"];
+const C = { bg: "#0b0b0b", ink: "#f5f5f2", ink2: "#c3c2b7", ink3: "#8a8984", bar: "#4a4a46",
+            lt: "#c6ff1a", ea: "#ff2bd6", grid: "#2a2a28" };
+const FONT = '"Inter", "Helvetica Neue", Arial, sans-serif';
+
+// Timeline (seconds)
+const INTRO = 1.5, STEP = 1.4, MOVE = 1.0, OUTRO = 4.0;
+let D, YEARS, ROWS, TOTAL;
+
+const ease = x => x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const fmt = v => (v < 1 ? v.toFixed(2) : v.toFixed(1)) + "%";
+
+async function init() {
+  const r = await fetch(DATA_URL);
+  const all = await r.json();
+  D = all.combined;
+  YEARS = D.years;
+  ROWS = Object.entries(D.countries)
+    .filter(([code]) => !DROP.includes(code))
+    .map(([code, c]) => ({ code, name: code === AGG ? "Euro area average" : c.name,
+                           v: YEARS.map(y => c.values[y]?.share ?? null) }))
+    .filter(r => r.v.some(x => x != null));
+  // rank per year (missing = bottom)
+  YEARS.forEach((y, i) => {
+    const order = [...ROWS].sort((a, b) => (b.v[i] ?? -1) - (a.v[i] ?? -1));
+    order.forEach((r, k) => { r.rank = r.rank || []; r.rank[i] = k; });
+  });
+  TOTAL = INTRO + (YEARS.length - 1) * STEP + OUTRO;
+  window.TOTAL = TOTAL;
+  window.ready = true;
+  renderAt(0);
+}
+
+// Where are we in the timeline: year index i and progress p (0..1) towards i+1
+function position(t) {
+  if (t <= INTRO) return { i: 0, p: 0 };
+  const s = t - INTRO, n = YEARS.length - 1;
+  const k = Math.floor(s / STEP);
+  if (k >= n) return { i: n, p: 0 };
+  return { i: k, p: ease(Math.min(1, (s - k * STEP) / MOVE)) };
+}
+const lerp = (a, b, p) => a + (b - a) * p;
+const val = (r, i, p) => {
+  const a = r.v[i] ?? 0, b = r.v[Math.min(i + 1, YEARS.length - 1)] ?? a;
+  return lerp(a, b, p);
+};
+
+function renderAt(t) {
+  const cv = document.getElementById("c"), x = cv.getContext("2d");
+  const W = cv.width, H = cv.height;
+  const { i, p } = position(t);
+  x.fillStyle = C.bg; x.fillRect(0, 0, W, H);
+
+  // Title block
+  x.fillStyle = C.ink; x.textBaseline = "alphabetic";
+  x.font = `700 46px ${FONT}`;
+  x.fillText("Real estate in funds and", 60, 96);
+  x.fillText("listed companies, % of GDP", 60, 150);
+  x.fillStyle = C.ink2; x.font = `400 26px ${FONT}`;
+  x.fillText("Fund assets + listed real estate, by country", 60, 194);
+
+  // Year counter
+  const yearShown = p > 0.5 ? YEARS[Math.min(i + 1, YEARS.length - 1)] : YEARS[i];
+  x.textAlign = "right"; x.fillStyle = C.ink; x.font = `800 96px ${FONT}`;
+  x.fillText(String(yearShown), W - 60, 160);
+  x.textAlign = "left";
+
+  // Bar race
+  const top = 240, rowH = 27, nameW = 250, barX = 60 + nameW + 12, barMax = W - barX - 130;
+  const vals = ROWS.map(r => val(r, i, p));
+  const maxV = Math.max(...vals) || 1;
+  ROWS.forEach((r, k) => {
+    const rank = lerp(r.rank[i], r.rank[Math.min(i + 1, YEARS.length - 1)], p);
+    const y = top + rank * rowH;
+    const v = vals[k];
+    const isLT = r.code === FOCUS, isEA = r.code === AGG;
+    const col = isLT ? C.lt : isEA ? C.ea : C.bar;
+    // name
+    x.textAlign = "right"; x.textBaseline = "middle";
+    x.font = `${isLT || isEA ? 700 : 400} 21px ${FONT}`;
+    x.fillStyle = isLT ? C.lt : isEA ? C.ea : C.ink2;
+    x.fillText(r.name, 60 + nameW, y + rowH / 2);
+    // bar with glow for highlights
+    const w = Math.max(2, v / maxV * barMax);
+    x.save();
+    if (isLT || isEA) { x.shadowColor = col; x.shadowBlur = 18; }
+    x.fillStyle = col;
+    x.beginPath(); x.roundRect(barX, y + 4, w, rowH - 8, 3); x.fill();
+    x.restore();
+    // value
+    x.textAlign = "left"; x.font = `${isLT || isEA ? 700 : 400} 20px ${FONT}`;
+    x.fillStyle = isLT || isEA ? C.ink : C.ink2;
+    x.fillText(fmt(v), barX + w + 10, y + rowH / 2);
+  });
+
+  // Lithuania vs euro area line (draws in as time passes)
+  const lt = ROWS.find(r => r.code === FOCUS), ea = ROWS.find(r => r.code === AGG);
+  const gx = 120, gy = 1052, gw = W - 240, gh = 130;
+  const prog = i + p;                         // years drawn so far (fractional)
+  const allV = [...lt.v, ...ea.v].filter(v => v != null);
+  const vMax = Math.ceil(Math.max(...allV) / 2) * 2;
+  const X = k => gx + k / (YEARS.length - 1) * gw, Y = v => gy + gh - v / vMax * gh;
+  x.strokeStyle = C.grid; x.lineWidth = 1;
+  for (let g = 0; g <= vMax; g += vMax / 2) { x.beginPath(); x.moveTo(gx, Y(g)); x.lineTo(gx + gw, Y(g)); x.stroke(); }
+  x.fillStyle = C.ink3; x.font = `400 18px ${FONT}`; x.textAlign = "right"; x.textBaseline = "middle";
+  for (let g = 0; g <= vMax; g += vMax / 2) x.fillText(g + "%", gx - 12, Y(g));
+  x.textAlign = "center"; x.textBaseline = "top";
+  YEARS.forEach((y, k) => x.fillText(String(y), X(k), gy + gh + 8));
+  for (const [r, col, dash] of [[ea, C.ea, [10, 7]], [lt, C.lt, []]]) {
+    x.save(); x.strokeStyle = col; x.lineWidth = 5; x.setLineDash(dash);
+    x.shadowColor = col; x.shadowBlur = 14; x.lineJoin = "round";
+    x.beginPath();
+    for (let k = 0; k <= Math.min(Math.floor(prog), YEARS.length - 1); k++) {
+      const px = X(k), py = Y(r.v[k]); k ? x.lineTo(px, py) : x.moveTo(px, py);
+    }
+    const k0 = Math.floor(prog);
+    if (k0 < YEARS.length - 1 && prog > k0) {
+      const f = prog - k0;
+      x.lineTo(lerp(X(k0), X(k0 + 1), f), Y(lerp(r.v[k0], r.v[k0 + 1], f)));
+    }
+    x.stroke(); x.restore();
+  }
+  x.textAlign = "left"; x.textBaseline = "alphabetic"; x.font = `700 22px ${FONT}`;
+  x.fillStyle = C.lt; x.fillText("Lithuania", gx, gy - 22);
+  x.fillStyle = C.ea; x.fillText("Euro area average", gx + 150, gy - 22);
+
+  // Final takeaway (fades in during the outro)
+  const outroStart = INTRO + (YEARS.length - 1) * STEP;
+  const a = Math.max(0, Math.min(1, (t - outroStart - 0.3) / 0.6));
+  if (a > 0) {
+    x.globalAlpha = a;
+    x.font = `700 30px ${FONT}`; x.textAlign = "left";
+    const n = YEARS.length - 1;
+    x.fillStyle = C.lt; x.fillText(`Lithuania ${fmt(lt.v[0])} → ${fmt(lt.v[n])}`, 60, 1262);
+    x.fillStyle = C.ea; x.fillText(`Euro area ${fmt(ea.v[0])} → ${fmt(ea.v[n])}`, 560, 1262);
+    x.globalAlpha = 1;
+  }
+
+  // Credit
+  x.fillStyle = C.ink3; x.font = `400 18px ${FONT}`; x.textAlign = "left"; x.textBaseline = "alphabetic";
+  x.fillText("Sources: ECB, EPRA, Eurostat. Funds: total assets; listed: market value; year end. Luxembourg excluded.", 60, 1306);
+  x.fillText("Analysis: Elena Kulik, Colliers Lithuania", 60, 1330);
+}
+window.renderAt = renderAt;
+document.fonts.load(`700 46px ${FONT}`).finally(init);
+</script>
+</body>
+</html>

@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,12 +21,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-qz62m4m-sa94e6pg_k4&40o&&g7jdks*n6rc7y8mtmc@q8tu7u'
+# On the server set DJANGO_SECRET_KEY to a long random string; the fallback is for local use only.
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-qz62m4m-sa94e6pg_k4&40o&&g7jdks*n6rc7y8mtmc@q8tu7u')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Local: on by default. Server: set DJANGO_DEBUG=0.
+DEBUG = os.environ.get('DJANGO_DEBUG', '1') == '1'
 
-ALLOWED_HOSTS = []
+# Server: e.g. DJANGO_ALLOWED_HOSTS=yourname.pythonanywhere.com
+ALLOWED_HOSTS = [h for h in os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',') if h]
 
 
 # Application definition
@@ -37,7 +41,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-     "projects",
+    "projects",
+    "funds",
 ]
 
 MIDDLEWARE = [
@@ -116,6 +121,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'   # python manage.py collectstatic copies files here
 
 
 # Email
@@ -126,3 +132,26 @@ MAILERS = {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
 }
+
+
+# Source workbook for the funds dashboard (re-read automatically whenever it is saved).
+MAIN_DATA_FILE = BASE_DIR / "Main data file.xlsx"
+
+# Base map (Mapbox). The token is the public "pk." token from account.mapbox.com.
+# Paste it here or set the MAPBOX_TOKEN environment variable.
+MAPBOX_TOKEN = os.environ.get("MAPBOX_TOKEN", "")
+MAP_STYLE = "mapbox://styles/lenakulik/cmv10xmc0004e01skf02df3f3"
+
+# Google Analytics 4 measurement ID (looks like "G-XXXXXXXXXX"). Leave empty to switch analytics off.
+GA_MEASUREMENT_ID = os.environ.get("GA_MEASUREMENT_ID", "G-455WXQMM6G")
+
+# Live mode re-reads the workbook and refreshes open pages every 2 s (local editing).
+# On the published site set LIVE_RELOAD=0: data is read once and pages don't poll.
+LIVE_RELOAD = os.environ.get('LIVE_RELOAD', '1') == '1'
+
+# Private values for this computer (e.g. MAPBOX_TOKEN) live in local_settings.py next to manage.py.
+# That file is not in git, so secrets never reach GitHub.
+try:
+    from local_settings import *  # noqa: F401,F403
+except ImportError:
+    pass

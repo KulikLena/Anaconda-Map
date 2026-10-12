@@ -1,6 +1,19 @@
-venv/
+# Allowlist: ignore everything in the project root except the app itself.
+# Keeps client documents, source PDFs, working spreadsheets and videos out of the repository.
+/*
+!/.gitignore
+!/manage.py
+!/config/
+!/funds/
+!/projects/
+!/requirements.txt
+!/requirements-pythonanywhere.txt
+!/DEPLOY.md
+!/Main data file.xlsx
+
+# Never commit these, wherever they are
 __pycache__/
 *.pyc
-db.sqlite3
+staticfiles/
 .env
-.vscode/
+~$*
