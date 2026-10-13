@@ -143,7 +143,7 @@ MAPBOX_TOKEN = os.environ.get("MAPBOX_TOKEN", "")
 MAP_STYLE = "mapbox://styles/lenakulik/cmv10xmc0004e01skf02df3f3"
 
 # Google Analytics 4 measurement ID (looks like "G-XXXXXXXXXX"). Leave empty to switch analytics off.
-GA_MEASUREMENT_ID = os.environ.get("GA_MEASUREMENT_ID", "G-455WXQMM6G")
+GA_MEASUREMENT_ID = os.environ.get("GA_MEASUREMENT_ID", "G-FR75W49PP8")
 
 # Live mode re-reads the workbook and refreshes open pages every 2 s (local editing).
 # On the published site set LIVE_RELOAD=0: data is read once and pages don't poll.
