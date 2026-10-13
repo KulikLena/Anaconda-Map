@@ -140,7 +140,7 @@ MAIN_DATA_FILE = BASE_DIR / "Main data file.xlsx"
 # Base map (Mapbox). The token is the public "pk." token from account.mapbox.com.
 # Paste it here or set the MAPBOX_TOKEN environment variable.
 MAPBOX_TOKEN = os.environ.get("MAPBOX_TOKEN", "")
-MAP_STYLE = "mapbox://styles/lenakulik/cmv10ubn1004e01r7f2pf5pdi"
+MAP_STYLE = "mapbox://styles/lenakulik/cmv10xmc0004e01skf02df3f3"
 
 # Google Analytics 4 measurement ID (looks like "G-XXXXXXXXXX"). Leave empty to switch analytics off.
 GA_MEASUREMENT_ID = os.environ.get("GA_MEASUREMENT_ID", "G-FR75W49PP8")
