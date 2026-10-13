@@ -14,7 +14,7 @@
       --ink: #f5f5f2; --ink-2: #c3c2b7; --ink-3: #8a8984;
       --grid: #2a2a28; --axis: #3a3a37;
       /* Acid highlights: Lithuania, euro area average, selected country */
-      --lt: #c6ff1a; --ea: #ff2bd6; --sel: #ffffff;
+      --lt: #ff7a00; --ea: #ff2bd6; --sel: #ffffff;
       --other: #4a4a46; --nodata: #262624;
     }
     * { box-sizing: border-box; }
@@ -269,9 +269,9 @@ const COMBINED_NOTES = {
 const EXCLUDED = {
   LU: "Funds are registered there for tax and regulatory reasons, and they invest across Europe.",
 };
-// Acid electric blue: bright cyan for the lowest share, deepening to electric blue for the highest.
+// Acid green: pale lime for the lowest share, deepening to dark green for the highest. Lithuania is orange (--lt).
 // Four fixed steps (rounded, same in every year and view): under 1%, 1–3%, 3–6%, over 6%.
-const RAMP = ["#00ecff", "#0094ff", "#1f3bff", "#2a00ff"];
+const RAMP = ["#e6ff66", "#9eff00", "#45d000", "#167a00"];
 const STEPS = [1, 3, 6];
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
