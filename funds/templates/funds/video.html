@@ -17,7 +17,7 @@ const LOGO_URL = "{% static 'funds/colliers-logo.png' %}";
 const LOGO = new Image(); let logoOk = false;
 LOGO.onload = () => { logoOk = true; }; LOGO.src = LOGO_URL;
 const FOCUS = "LT", AGG = "U2";
-const DROP = ["GB", "LU"];
+const DROP = ["GB", "LU", "HU"];   // HU: fund figures only from 2025
 const C = { bg: "#0b0b0b", ink: "#f5f5f2", ink2: "#c3c2b7", ink3: "#8a8984", bar: "#4a4a46",
             lt: "#c6ff1a", ea: "#ff2bd6", grid: "#2a2a28" };
 const FONT = '"Inter", "Helvetica Neue", Arial, sans-serif';
@@ -36,8 +36,14 @@ async function init() {
   YEARS = D.years;
   ROWS = Object.entries(D.countries)
     .filter(([code]) => !DROP.includes(code))
-    .map(([code, c]) => ({ code, name: code === AGG ? "Euro area average" : c.name,
-                           v: YEARS.map(y => { const v = c.values[y]?.share; return v > 0 ? v : null; }) }))   // 0 = no data
+    .map(([code, c]) => {
+      // fund figures for some years only: the other years are "no data", not 0
+      const vals = YEARS.map(y => c.values[y]);
+      const gaps = vals.some(v => v && v.funds != null) && vals.some(v => v && v.funds == null);
+      return [code, c, gaps];
+    })
+    .map(([code, c, gaps]) => ({ code, name: code === AGG ? "Euro area average" : c.name,
+                           v: YEARS.map(y => { const x = c.values[y]; if (gaps && x && x.funds == null) return null; const v = x?.share; return v > 0 ? v : null; }) }))   // 0 = no data
     .filter(r => r.v.some(x => x != null));
   // rank per year (missing = bottom)
   YEARS.forEach((y, i) => {
@@ -103,6 +109,8 @@ function renderAt(t) {
     const y = top + rank * rowH;
     const v = vals[k];
     if (r.v[i] == null && r.v[Math.min(i + 1, YEARS.length - 1)] == null) return;   // no data: not drawn
+    const nxt = r.v[Math.min(i + 1, YEARS.length - 1)];
+    x.save(); x.globalAlpha = r.v[i] == null ? p : nxt == null ? 1 - p : 1;   // fade in/out when data starts/stops
     const isLT = r.code === FOCUS, isEA = r.code === AGG;
     const col = isLT ? C.lt : isEA ? C.ea : C.bar;
     // name
@@ -121,6 +129,7 @@ function renderAt(t) {
     x.textAlign = "left"; x.font = `${isLT || isEA ? 700 : 400} 20px ${FONT}`;
     x.fillStyle = isLT || isEA ? C.ink : C.ink2;
     x.fillText(fmt(v), barX + w + 10, y + rowH / 2);
+    x.restore();
   });
 
   // Lithuania vs euro area line (draws in as time passes)

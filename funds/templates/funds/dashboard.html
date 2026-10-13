@@ -256,6 +256,7 @@ const NOT_COVERED = {
 // Countries removed from the dashboard entirely, with the reason shown in their pop-up.
 const DROPPED = {
   GB: "Not included: Eurostat has no UK GDP after 2019 and the fund figures have no comparable source.",
+  HU: "Not included: real estate fund figures are available only from 2025, so the trend since 2019 cannot be shown.",
 };
 // Notes shown in a country's pop-up (funds view / combined view).
 const FUND_NOTES = {
@@ -436,6 +437,8 @@ function showPopup(iso, name, lngLat) {
     html += `<div class="pop-muted">No data for ${year}</div>`;
   } else if (v.zero) {
     html += `<div class="pop-muted">No real estate funds reported (0)</div>`;
+  } else if (v.gap) {
+    html += `<div class="pop-muted">No real estate fund figure for ${year}, so no total is shown</div>`;
   } else if (v.share == null) {
     html += `<div>${fmtEur(v.assets)} total assets</div><div class="pop-muted">No GDP for ${year}, so no share</div>`;
   } else {
@@ -643,9 +646,11 @@ function setYear(y) {
     notes.push("Finland and Spain: series breaks in 2014 (reporting changes)");
   if (MODE === "combined") {
     const noFunds = Object.entries(DATA.countries)
-      .filter(([c, x]) => c !== AGGREGATE && !EXCLUDED[c] && x.values[y] && x.values[y].funds == null)
+      .filter(([c, x]) => c !== AGGREGATE && !EXCLUDED[c] && x.values[y] && x.values[y].funds == null && !x.values[y].gap)
       .map(([, x]) => x.name);
     if (noFunds.length) notes.push(`No fund figure, listed only: ${noFunds.join(", ")}`);
+    const gaps = Object.entries(DATA.countries).filter(([c, x]) => x.values[y]?.gap).map(([, x]) => x.name);
+    if (gaps.length) notes.push(`Not shown this year (fund figure missing): ${gaps.join(", ")}`);
   }
   if (ea?.missing?.length) notes.push(`Euro area average excludes ${ea.missing.map(c => DATA.countries[c]?.name || c).join(", ")} (no data for ${y})`);
   document.getElementById("aboutYear").innerHTML = notes.length ? `<br><br><strong>Notes for ${y}.</strong> ${notes.join(". ")}.` : "";
@@ -733,6 +738,13 @@ async function loadData() {
     m.years = m.years.filter(y => y >= START_YEAR);
     for (const c of Object.values(m.countries))
       for (const y of Object.keys(c.values)) if (+y < START_YEAR) delete c.values[y];
+  }
+  // Funds + listed view: if a country has fund figures for some years but not others, the missing years are
+  // "no data" (not 0). Otherwise the year the fund figures start looks like a market jump.
+  if (d.combined) for (const c of Object.values(d.combined.countries)) {
+    const vals = Object.values(c.values);
+    if (vals.some(v => v.funds != null) && vals.some(v => v.funds == null))
+      for (const v of vals) if (v.funds == null) { v.share = null; v.gap = true; }
   }
   // Funds view: a reported 0 means no funds of this type, shown as "no data" rather than as the lowest class.
   for (const [code, c] of Object.entries(d.countries))
