@@ -20,7 +20,9 @@
     * { box-sizing: border-box; }
     body { margin: 0; font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
            background: var(--page); color: var(--ink); }
-    header { padding: 12px 20px 4px; }
+    header { padding: 12px 20px 4px; position: relative; }
+    .brand { position: absolute; top: 14px; right: 20px; height: 40px; width: auto; border-radius: 3px; }
+    header.has-logo h1, header.has-logo .sub { padding-right: 90px; }
     h1 { font-size: 20px; margin: 0 0 2px; font-weight: 600; }
     .sub { color: var(--ink-2); margin: 0; }
     main { display: grid; grid-template-columns: minmax(0, 3fr) minmax(360px, 2fr); gap: 16px; padding: 8px 20px 16px;
@@ -38,6 +40,10 @@
     #year { flex: 1; accent-color: var(--sel); }
     #yearLabel { font-size: 28px; font-weight: 600; min-width: 64px; text-align: right; font-variant-numeric: tabular-nums; }
     .note { color: var(--ink-3); font-size: 12px; min-height: 16px; margin-top: 4px; }
+    .linkbtn { background: none; border: 0; padding: 0; font: inherit; color: var(--lt); cursor: pointer; text-decoration: underline; }
+    .rank-more { margin-top: 6px; font-size: 12px; }
+    .rank-more[hidden] { display: none; }
+    .about-year { color: var(--ink-2); }
     .mode { display: inline-flex; margin-top: 8px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
     .mode button { background: transparent; color: var(--ink-2); border: 0; padding: 5px 12px; font: inherit; font-size: 12px; cursor: pointer; }
     .mode button + button { border-left: 1px solid var(--border); }
@@ -124,6 +130,9 @@
       .takeaway { font-size: 14px; }
       #yearLabel { font-size: 22px; min-width: 52px; }
       .legend { font-size: 11px; }
+      .brand { top: 12px; right: 16px; height: 28px; }
+      header.has-logo h1 { padding-right: 60px; }
+      header.has-logo .sub { padding-right: 0; }
       .rk { grid-template-columns: 104px minmax(0, 1fr); }
       .rk-track { padding-right: 40px; }
     }
@@ -156,7 +165,10 @@
 </head>
 <body>
 <header>
-  <h1 id="title">Total assets of real estate investment funds registered in each country, % of GDP</h1>
+  <!-- Logo: put the official file at funds/static/funds/colliers-logo.png (version for dark backgrounds). Hidden if missing. -->
+  <img class="brand" src="{% static 'funds/colliers-logo.png' %}" alt="Colliers" hidden
+       onload="this.hidden=false;this.parentNode.classList.add('has-logo')" onerror="this.remove()">
+  <h1 id="title">Real estate funds and listed property, % of GDP</h1>
   <p class="sub" id="subtitle">Funds are counted where they are registered, not where their property is. Click a country for details.</p>
   <p class="takeaway" id="takeaway"></p>
   <p class="credit">Sources: ECB, EPRA, Eurostat · Analysis: Elena Kulik, Colliers Lithuania</p>
@@ -171,37 +183,28 @@
         <input id="year" type="range" step="1" aria-label="Year">
         <div id="yearLabel">–</div>
       </div>
-      <div class="note" id="yearNote"></div>
-      <div class="mode" role="group" aria-label="Measure">
-        <button type="button" data-mode="funds" class="on">Funds</button>
-        <button type="button" data-mode="combined">Funds + listed real estate</button>
-      </div>
       <div class="legend" id="legend"></div>
-      <details class="notes" id="notes" hidden>
-        <summary id="notesSummary">Coverage notes</summary>
-        <div class="disclaimer" id="disclaimer"></div>
-      </details>
       <details class="notes" id="about">
-        <summary>How to read this</summary>
+        <summary>About the data</summary>
         <div class="disclaimer">
-          <strong>Where funds are registered, not where they invest.</strong> ECB statistics count a fund in its
-          country of registration. The chart shows the size of each country's real estate fund industry, not how much
-          of its property is held by funds. Luxembourg (4–5× GDP) is left out for this reason; Ireland and the
-          Netherlands are affected to a lesser degree.<br><br>
-          <strong>Funds only, not listed property companies.</strong> REITs and listed property companies are not
-          investment funds and are not counted. Countries where property is mostly held that way (e.g. Belgium, Spain,
-          Sweden) look smaller than their market is.<br><br>
-          <strong>Mixed sources.</strong> Countries marked <span class="star">*</span> have asset figures from a source
-          other than the ECB. Definitions may differ, so compare them with care.<br><br>
-          <strong>Breaks in the series.</strong> Some jumps (e.g. Finland 2014, Germany 2015, Spain 2014) probably reflect
-          changes in reporting or coverage rather than market moves.<br><br>
-          <strong>Funds + listed real estate view.</strong> Adds the market value of REITs and listed property
-          companies (EPRA Total Markets Table, year end, converted from USD at the ECB rate) to fund total assets.
-          Available 2019–2025 (earlier EPRA year-end tables are not publicly available). The two parts measure different things (fund figures include borrowed money, market
-          value does not), funds may own shares of listed companies (some double counting), and a country with no
-          fund figure counts its funds as 0. Read it as an indication of overall size, not an exact total.<br><br>
-          <strong>Total assets.</strong> Figures include property bought with borrowed money, so funds that borrow more
-          look bigger. Assets are year-end stocks; the latest year uses the latest quarter and the previous year's GDP.
+          <strong>Where funds are registered, not where they invest.</strong> A fund is counted in its country of
+          registration, so the map shows the size of each country's real estate fund industry. Funds registered in
+          Lithuania may also own property in Latvia or Estonia.<br><br>
+          <strong>Total assets include borrowed money.</strong> Fund figures are total assets, so funds that borrow more
+          look bigger. Listed real estate is market value (REITs and listed property companies, EPRA).<br><br>
+          <strong>Luxembourg is left out.</strong> Funds are registered there for tax and regulatory reasons and invest
+          across Europe; its fund assets are several times its GDP and would flatten the scale for everyone else.
+          <span id="aboutYear" class="about-year"></span>
+          <div id="disclaimer"></div>
+          <br><strong>Sources and method.</strong> Fund assets: ECB Data Portal, Investment fund statistics (IVF), real
+          estate funds, total assets, end of period, unless another source is noted for a country (marked
+          <span class="star">*</span>). Listed real estate: EPRA Total Markets Table, year end, converted from USD at
+          ECB rates; available 2019–2025. GDP: Eurostat, current prices. Euro area average = sum of assets ÷ sum of GDP
+          of the countries that used the euro in that year, excluding Luxembourg. The two parts measure different things
+          and funds may own listed shares (some double counting), so read the combined figure as an indication of
+          overall size, not an exact total. Countries with no fund figure count their funds as 0. Some jumps (Finland
+          and Spain 2014, Germany 2015) reflect reporting changes, not market moves.<br><br>
+          <span id="modeSwitch"></span>
         </div>
       </details>
     </div>
@@ -218,6 +221,7 @@
         <label>% of GDP</label>
       </div>
       <div class="rank-wrap" id="rankWrap"></div>
+      <div class="rank-more" id="rankMore" hidden><button type="button" class="linkbtn" id="rankMoreBtn"></button></div>
       <div class="rank-foot" id="rankFoot"><span class="star">*</span> asset figures not from the ECB; may not be comparable</div>
     </div>
 
@@ -231,14 +235,7 @@
   </div>
 </main>
 
-<footer>
-  Fund assets: ECB Data Portal, Investment fund statistics (IVF),
-  real estate funds, total assets, end of period, unless another source is noted for a country; GDP: Eurostat,
-  current prices. Year values use December stocks; the latest year uses the latest quarter and the
-  previous year's GDP. Euro area average = sum of fund assets ÷ sum of GDP of the countries that
-  used the euro in that year, excluding Luxembourg. Listed real estate: EPRA Total Markets Table (year end), converted
-  from USD at ECB rates. Analysis: Elena Kulik, Colliers Lithuania.
-</footer>
+
 
 <script>
 const DATA_URL = "{% url 'funds:data_api' %}";
@@ -273,7 +270,9 @@ const EXCLUDED = {
   LU: "Funds are registered there for tax and regulatory reasons, and they invest across Europe.",
 };
 // Acid electric blue: bright cyan for the lowest share, deepening to electric blue for the highest.
-const RAMP = ["#00ecff", "#00c3ff", "#0094ff", "#0a66ff", "#1f3bff", "#2a00ff"];
+// Four fixed steps (rounded, same in every year and view): under 1%, 1–3%, 3–6%, over 6%.
+const RAMP = ["#00ecff", "#0094ff", "#1f3bff", "#2a00ff"];
+const STEPS = [1, 3, 6];
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
 const fmtPct = v => v == null ? "–" : (v < 1 ? v.toFixed(2) : v.toFixed(1)) + "%";
@@ -286,43 +285,19 @@ function status(msg) {
   el.textContent = msg || ""; el.style.display = msg ? "block" : "none";
 }
 
-/* --- Colour classes: quantiles over all years so colours compare across time --- */
-function niceRound(v) {
-  if (v === 0) return 0;
-  const p = Math.pow(10, Math.floor(Math.log10(v)) - 1);
-  return Math.round(v / p) * p;
-}
-function computeBreaks() {
-  const vals = [];
-  for (const [code, c] of Object.entries(DATA.countries)) {
-    if (code === AGGREGATE || EXCLUDED[code]) continue;
-    for (const v of Object.values(c.values)) if (v.share != null && v.share > 0) vals.push(v.share);
-  }
-  vals.sort((a, b) => a - b);
-  if (!vals.length) return [];
-  const q = p => vals[Math.min(vals.length - 1, Math.floor(p * vals.length))];
-  const br = [];
-  for (let i = 1; i < RAMP.length; i++) {
-    const b = niceRound(q(i / RAMP.length));
-    if (!br.length || b > br[br.length - 1]) br.push(b);
-  }
-  return br;   // n breaks -> n+1 classes
-}
+/* --- Colour classes: fixed rounded steps --- */
+function computeBreaks() { return STEPS; }
 function colorFor(v) {
   let i = 0;
   while (i < BREAKS.length && v >= BREAKS[i]) i++;
-  return RAMP[Math.round(i * (RAMP.length - 1) / BREAKS.length)];
+  return RAMP[i];
 }
 function renderLegend() {
   const el = document.getElementById("legend");
   let html = '<span class="legend-title">Share of GDP</span>';
-  const edges = [null, ...BREAKS, null];
-  for (let i = 0; i < edges.length - 1; i++) {
-    const lo = edges[i], hi = edges[i + 1];
-    const label = lo == null ? `< ${fmtPct(hi)}` : hi == null ? `≥ ${fmtPct(lo)}` : `${fmtPct(lo)}–${fmtPct(hi)}`;
-    const col = RAMP[Math.round(i * (RAMP.length - 1) / BREAKS.length)];
-    html += `<span><span class="sw" style="background:${col}"></span>${label}</span>`;
-  }
+  const b = BREAKS;
+  const labels = [`under ${b[0]}%`, ...b.slice(0, -1).map((lo, i) => `${lo}–${b[i + 1]}%`), `over ${b[b.length - 1]}%`];
+  labels.forEach((l, i) => { html += `<span><span class="sw" style="background:${RAMP[i]}"></span>${l}</span>`; });
   html += `<span><span class="sw" style="background:transparent;box-shadow:inset 0 0 0 1px ${css("--ink-3")}"></span>No data</span>`;
   el.innerHTML = html;
 }
@@ -352,7 +327,9 @@ async function initMap() {
     cooperativeGestures: window.matchMedia("(max-width: 900px)").matches,  // phones: page scrolls, two fingers move the map
     center: [14, 52], zoom: 3.3, minZoom: 2.5, maxZoom: 7,
     attributionControl: false,
+    dragRotate: false, pitchWithRotate: false, maxPitch: 0,
   });
+  map.touchZoomRotate.disableRotation();
   map.addControl(new mapboxgl.AttributionControl({ compact: true }));
   map.addControl(new mapboxgl.NavigationControl({ showCompass: false }));
   map.on("error", e => { if (e?.error?.status === 401) status("Mapbox rejected the access token (check MAPBOX_TOKEN)."); });
@@ -462,20 +439,16 @@ function showPopup(iso, name, lngLat) {
   } else if (v.share == null) {
     html += `<div>${fmtEur(v.assets)} total assets</div><div class="pop-muted">No GDP for ${year}, so no share</div>`;
   } else {
-    const parts = MODE === "combined"
-      ? `<div>${fmtEur(v.assets)} in total</div>
-         <div class="pop-muted">Funds ${v.funds == null ? "no data (counted as 0)" : fmtEur(v.funds)}</div>
-         <div class="pop-muted">Listed real estate ${fmtEur(v.listed)}</div>`
-      : `<div>${fmtEur(v.assets)} total assets</div>`;
-    html += `<div class="pop-big">${fmtPct(v.share)} of GDP</div>
-             ${parts}
+    const split = MODE === "combined"
+      ? `<div class="pop-muted">Funds ${v.funds == null ? "no figure (0)" : fmtEur(v.funds)} · listed ${fmtEur(v.listed)}</div>` : "";
+    const note = (MODE === "combined" ? COMBINED_NOTES : FUND_NOTES)[iso];
+    html += `<div class="pop-big">${fmtEur(v.assets)}</div>
+             <div><b>${fmtPct(v.share)}</b> of GDP</div>
+             ${split}
              ${euroLine(iso)}
-             <div class="pop-muted">GDP ${fmtEur(v.gdp)}${v.gdp_year && v.gdp_year != year ? ` (${v.gdp_year})` : ""}</div>
-             <div class="pop-muted">${MODE === "combined" ? "As of end-" + year : `Assets as of ${v.period}${v.partial ? " (latest quarter)" : ""}`}</div>
-             ${nonEcb(iso)
-               ? `<div class="pop-muted"><span class="star">*</span> Asset figures not from the ECB${c.asset_source ? ` (${c.asset_source})` : ""}; may not be comparable with other countries</div>`
-               : c.asset_source ? `<div class="pop-muted">Source: ${c.asset_source}</div>` : ""}
-             ${(MODE === "combined" ? COMBINED_NOTES : FUND_NOTES)[iso] ? `<div class="pop-note">${(MODE === "combined" ? COMBINED_NOTES : FUND_NOTES)[iso]}</div>` : ""}`;
+             ${v.partial ? `<div class="pop-muted">Assets as of ${v.period} (latest quarter)</div>` : ""}
+             ${nonEcb(iso) ? `<div class="pop-muted"><span class="star">*</span> Not from the ECB${c.asset_source ? ` (${c.asset_source})` : ""}; may not be comparable</div>` : ""}
+             ${note ? `<div class="pop-note">${note}</div>` : ""}`;
   }
   if (popup) popup.remove();
   popup = new mapboxgl.Popup({ maxWidth: "260px" }).setLngLat(lngLat).setHTML(html).addTo(map);
@@ -605,9 +578,16 @@ function barHeight(n) {
   return Math.max(11, Math.min(18, Math.floor(avail / Math.max(n, 1))));
 }
 
+let RANK_ALL = false;
+const RANK_SHORT = 10;
 function renderRank() {
   const wrap = document.getElementById("rankWrap");
-  const rows = rankRows();
+  const allRows = rankRows();
+  const short = innerWidth < 600 && !RANK_ALL && allRows.length > RANK_SHORT + 2;
+  const rows = short ? allRows.filter((r, i) => i < RANK_SHORT || r.code === FOCUS || r.code === AGGREGATE) : allRows;
+  const more = document.getElementById("rankMore");
+  more.hidden = !(innerWidth < 600 && allRows.length > RANK_SHORT + 2);
+  document.getElementById("rankMoreBtn").textContent = short ? `Show all ${allRows.length}` : "Show top 10";
   const h = barHeight(rows.length);
   const max = rows.length ? Math.max(...rows.map(r => r.share)) : 1;
   document.getElementById("rankYear").textContent = year;
@@ -665,11 +645,10 @@ function setYear(y) {
     const noFunds = Object.entries(DATA.countries)
       .filter(([c, x]) => c !== AGGREGATE && !EXCLUDED[c] && x.values[y] && x.values[y].funds == null)
       .map(([, x]) => x.name);
-    notes.push(`Listed real estate: EPRA, year end, ${YEARS[0]}–${YEARS[YEARS.length - 1]}`);
     if (noFunds.length) notes.push(`No fund figure, listed only: ${noFunds.join(", ")}`);
   }
   if (ea?.missing?.length) notes.push(`Euro area average excludes ${ea.missing.map(c => DATA.countries[c]?.name || c).join(", ")} (no data for ${y})`);
-  document.getElementById("yearNote").textContent = notes.join(". ");
+  document.getElementById("aboutYear").innerHTML = notes.length ? `<br><br><strong>Notes for ${y}.</strong> ${notes.join(". ")}.` : "";
   paintMap();
   renderDisclaimer();
   if (chart) chart.draw();
@@ -699,9 +678,7 @@ function renderDisclaimer() {
     parts.push(`<strong>${name}: no data.</strong> ${note}`);
   }
   const shown = parts.filter(Boolean);
-  document.getElementById("disclaimer").innerHTML = shown.join("<br><br>");
-  document.getElementById("notes").hidden = !shown.length;
-  document.getElementById("notesSummary").textContent = `Coverage notes (${shown.length})`;
+  document.getElementById("disclaimer").innerHTML = shown.length ? "<br>" + shown.join("<br><br>") : "";
 }
 
 function selectCountry(code) {
@@ -734,12 +711,14 @@ const hhmmss = () => new Date().toLocaleTimeString("en-GB");
 let VERSION = null, LAST_REFRESH = null, RAW = null, MODE = "combined";
 const MODES = {
   funds: {
-    title: "Total assets of real estate investment funds registered in each country, % of GDP",
-    sub: "Funds are counted where they are registered, not where their property is. Click a country for details.",
+    what: "real estate funds",
+    title: "Real estate funds, % of GDP",
+    sub: Y => `Total assets of real estate funds as % of GDP, ${Y[0]}–${Y[Y.length - 1]}. Click a country for details.`,
   },
   combined: {
-    title: "Real estate held through funds and listed companies, % of GDP",
-    sub: "Fund total assets (ECB) + market value of REITs and listed property companies (EPRA). Click a country for details.",
+    what: "real estate funds and listed property",
+    title: "Real estate funds and listed property, % of GDP",
+    sub: Y => `Real estate fund assets and listed property value as % of GDP, ${Y[0]}–${Y[Y.length - 1]}. Click a country for details.`,
   },
 };
 const liveMsg = () => `Data as of October 2026`;
@@ -771,22 +750,25 @@ function applyData(d) {
 function setMode(m) {
   if (m === "combined" && !RAW?.combined) return;
   MODE = m;
-  document.querySelectorAll(".mode button").forEach(b => b.classList.toggle("on", b.dataset.mode === MODE));
-  try { localStorage.setItem("fundsMode", MODE); } catch (e) {}
   render();
+}
+function renderModeSwitch() {
+  const el = document.getElementById("modeSwitch");
+  if (!RAW?.combined) { el.innerHTML = ""; return; }
+  el.innerHTML = MODE === "combined"
+    ? `<button type="button" class="linkbtn" data-to="funds">Show funds only (from 2008)</button>`
+    : `<button type="button" class="linkbtn" data-to="combined">Back to funds + listed real estate (2019–2025)</button>`;
+  el.querySelector("button").onclick = e => setMode(e.target.dataset.to);
 }
 
 function render() {
   const d = RAW;
   if (MODE === "combined" && !d.combined) MODE = "funds";
-  const btn = document.querySelector('.mode button[data-mode="combined"]');
-  btn.disabled = !d.combined;
-  btn.title = d.combined ? "" : "Add the listed real estate tables to the data file to enable this view";
-  document.querySelectorAll(".mode button").forEach(b => b.classList.toggle("on", b.dataset.mode === MODE));
+  renderModeSwitch();
   DATA = MODE === "combined" ? { ...d.combined, file: d.file } : d;
-  document.getElementById("title").textContent = MODES[MODE].title;
-  document.getElementById("subtitle").textContent = MODES[MODE].sub;
   YEARS = DATA.years;
+  document.getElementById("title").textContent = headline() || MODES[MODE].title;
+  document.getElementById("subtitle").textContent = MODES[MODE].sub(YEARS);
   renderTakeaway();
   if (!YEARS.length) { status("No data found in the data file"); return false; }
   status("");
@@ -798,6 +780,21 @@ function render() {
   buildChart();
   setYear(keep);
   return true;
+}
+
+// Title states the finding: growth of Lithuania's assets in euros vs the euro area, first to last full year.
+const HEADLINE_FROM = 2019;
+function headline() {
+  const lt = DATA.countries[FOCUS]?.values || {}, ea = DATA.countries[AGGREGATE]?.values || {};
+  // Same period in both views (the post's story): from HEADLINE_FROM, or the first year with data after it.
+  const full = YEARS.filter(y => y >= HEADLINE_FROM && lt[y]?.assets > 0 && ea[y]?.assets > 0 && !lt[y].partial && !ea[y].partial);
+  if (full.length < 2) return "";
+  const y0 = full[0], y1 = full[full.length - 1];
+  const r = lt[y1].assets / lt[y0].assets, e = ea[y1].assets / ea[y0].assets - 1;
+  const ltTxt = r >= 1.95 && r < 2.05 ? "doubled" : r >= 1 ? `grew ${r.toFixed(1)}×` : `fell ${Math.round((1 - r) * 100)}%`;
+  const eaTxt = `${e >= 0 ? "+" : "−"}${Math.abs(Math.round(e * 100))}%`;
+  const what = MODES[MODE].what;
+  return `Lithuania's ${what} ${ltTxt} since ${y0}. Euro area: ${eaTxt}.`;
 }
 
 // One-line headline: Lithuania and the euro area, first vs last full year of the current view.
@@ -847,11 +844,15 @@ async function poll() {
   } catch (e) { status(e.message); setLive(e.message, true); if (LIVE) setTimeout(poll, POLL_MS); return; }
 
   document.getElementById("year").addEventListener("input", e => setYear(+e.target.value));
-  document.querySelectorAll(".mode button").forEach(b => b.addEventListener("click", () => setMode(b.dataset.mode)));
-  try { if (localStorage.getItem("fundsMode") === "funds") MODE = "funds"; } catch (e) {}
+  document.getElementById("rankMoreBtn").addEventListener("click", () => { RANK_ALL = !RANK_ALL; renderRank(); });
   document.getElementById("play").addEventListener("click", togglePlay);
   applyData(d);
   LAST_REFRESH = hhmmss();
+  // Play the timeline once on first load (first year -> latest), unless the reader prefers less motion.
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches && YEARS.length > 1) {
+    setYear(YEARS[0]);
+    setTimeout(() => { if (!timer && year === YEARS[0]) togglePlay(); }, 900);
+  }
   if (LIVE) {
     setLive(liveMsg());
     setTimeout(poll, POLL_MS);   // start polling even if the base map is slow to load
