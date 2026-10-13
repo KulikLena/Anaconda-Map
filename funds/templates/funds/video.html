@@ -23,7 +23,7 @@ const C = { bg: "#0b0b0b", ink: "#f5f5f2", ink2: "#c3c2b7", ink3: "#8a8984", bar
 const FONT = '"Inter", "Helvetica Neue", Arial, sans-serif';
 
 // Timeline (seconds)
-const INTRO = 1.5, STEP = 1.4, MOVE = 1.0, OUTRO = 4.0;
+const INTRO = 1.0, STEP = 1.0, MOVE = 0.75, OUTRO = 3.5;
 let D, YEARS, ROWS, TOTAL, HEAD;
 
 const ease = x => x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
@@ -82,16 +82,17 @@ function renderAt(t) {
   const { i, p } = position(t);
   x.fillStyle = C.bg; x.fillRect(0, 0, W, H);
 
-  // Title block: the finding first
+  // Title block: what the chart shows (big), then the finding
   x.textBaseline = "alphabetic"; x.textAlign = "left";
-  x.fillStyle = C.ink2; x.font = `600 26px ${FONT}`;
-  x.fillText("Real estate funds + listed property, value in €", 60, 78);
-  x.font = `800 50px ${FONT}`;
+  x.fillStyle = C.ink; x.font = `800 46px ${FONT}`;
+  x.fillText("Real estate funds + listed", 60, 84);
+  x.fillText("property companies, % of GDP", 60, 138);
+  x.font = `700 30px ${FONT}`;
   const seg = (parts, yy) => { let xx = 60; for (const [t, col] of parts) { x.fillStyle = col; x.fillText(t, xx, yy); xx += x.measureText(t).width; } };
-  seg([["Lithuania", C.lt], [` ${HEAD.lt} since ${HEAD.y0}`, C.ink]], 138);
-  seg([["Euro area", C.ea], [`: ${HEAD.ea}`, C.ink]], 196);
-  x.fillStyle = C.ink2; x.font = `400 24px ${FONT}`;
-  x.fillText(`Ranking by share of GDP, ${HEAD.y0}–${HEAD.y1}`, 60, 240);
+  seg([["Value in €: ", C.ink2], ["Lithuania", C.lt], [` ${HEAD.lt.replace("grew ", "")} since ${HEAD.y0}, `, C.ink],
+       ["euro area", C.ea], [` ${HEAD.ea}`, C.ink]], 190);
+  x.fillStyle = C.ink3; x.font = `400 22px ${FONT}`;
+  x.fillText(`Funds: ECB · Listed REITs and property companies: EPRA · ${HEAD.y0}–${HEAD.y1}`, 60, 232);
 
   // Year counter
   const yearShown = p > 0.5 ? YEARS[Math.min(i + 1, YEARS.length - 1)] : YEARS[i];
