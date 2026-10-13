@@ -118,7 +118,10 @@
     #status { position: absolute; top: 12px; left: 12px; background: var(--surface); padding: 6px 10px;
               border: 1px solid var(--border); border-radius: 6px; font-size: 12px; display: none; }
     @media (max-width: 900px) {
-      main { grid-template-columns: 1fr; padding: 8px 16px 16px; height: auto; }
+      main { display: flex; flex-direction: column; gap: 12px; padding: 8px 16px 16px; height: auto; }
+      /* phone/tablet order: timeline, ranking, line chart, map */
+      .left, .side { display: contents; }
+      .controls { order: 1; } .rank-card { order: 2; } .chart-card { order: 3; } .map-card { order: 4; }
       header, footer { padding-left: 16px; padding-right: 16px; }
       .map-card { height: 60vh; min-height: 360px; flex: none; }
       .chart-card { min-height: 340px; }
