@@ -158,7 +158,7 @@
     try { gaChoice = localStorage.getItem("gaConsent"); } catch (e) {}
     if (gaChoice === "granted") gtag("consent", "update", { analytics_storage: "granted" });
     gtag("js", new Date());
-    gtag("config", "{{ ga_id|escapejs }}", { anonymize_ip: true });
+    if (window.top === window.self) gtag("config", "{{ ga_id|escapejs }}", { anonymize_ip: true });   // skip when shown as a preview
   </script>
   <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga_id|urlencode }}"></script>
 {% endif %}
@@ -884,7 +884,7 @@ async function poll() {
 <script>
   (function () {
     const box = document.getElementById("consent");
-    if (!gaChoice) box.style.display = "flex";
+    if (!gaChoice && window.top === window.self) box.style.display = "flex";   // no banner inside previews
     box.querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
       const c = b.dataset.c;
       try { localStorage.setItem("gaConsent", c); } catch (e) {}

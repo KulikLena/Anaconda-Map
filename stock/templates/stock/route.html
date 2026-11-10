@@ -172,6 +172,7 @@ document.getElementById('reset').onclick = () => { playing = false; btn.textCont
 document.getElementById('slider').oninput = e => { playing = false; btn.textContent = 'Play'; setQ(+e.target.value); };
 window.setQ = setQ;
 </script>
+{% endverbatim %}{% include "portfolio/_ga.html" %}{% verbatim %}
 </body>
 </html>
 {% endverbatim %}
