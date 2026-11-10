@@ -1,0 +1,35 @@
+{% if ga_id %}
+<style>
+  #consent{position:fixed;left:16px;right:16px;bottom:16px;max-width:560px;margin:0 auto;z-index:60;background:#fff;color:var(--navy);border:1px solid rgba(0,0,0,.12);border-radius:12px;padding:12px 14px;font-size:14px;display:none;gap:10px;align-items:center;flex-wrap:wrap;box-shadow:0 8px 30px rgba(0,0,0,.18)}
+  #consent p{margin:0;flex:1 1 260px}
+  #consent button{font:inherit;font-size:13px;border-radius:999px;padding:6px 14px;cursor:pointer;border:1px solid var(--navy);background:transparent;color:var(--navy)}
+  #consent button.yes{background:var(--navy);color:#fff;font-weight:600}
+</style>
+<div id="consent" role="dialog" aria-label="Cookie consent">
+  <p>This site uses Google Analytics to count visits. Allow analytics cookies?</p>
+  <button class="yes" data-c="granted">Accept</button>
+  <button data-c="denied">Decline</button>
+</div>
+<script>
+  // Google Analytics 4 with Consent Mode: nothing is stored until the visitor accepts.
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag("consent", "default", { analytics_storage: "denied", ad_storage: "denied", ad_user_data: "denied", ad_personalization: "denied" });
+  (function () {
+    let choice = null;
+    try { choice = localStorage.getItem("gaConsent"); } catch (e) {}
+    if (choice === "granted") gtag("consent", "update", { analytics_storage: "granted" });
+    gtag("js", new Date());
+    gtag("config", "{{ ga_id|escapejs }}", { anonymize_ip: true });
+    const box = document.getElementById("consent");
+    if (!choice) box.style.display = "flex";
+    box.querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
+      const c = b.dataset.c;
+      try { localStorage.setItem("gaConsent", c); } catch (e) {}
+      if (c === "granted") gtag("consent", "update", { analytics_storage: "granted" });
+      box.style.display = "none";
+    }));
+  })();
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id={{ ga_id|urlencode }}"></script>
+{% endif %}

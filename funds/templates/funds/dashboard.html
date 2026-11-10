@@ -876,7 +876,11 @@ async function poll() {
 })();
 </script>
 {% if ga_id %}
-
+<div id="consent" role="dialog" aria-label="Cookie consent">
+  <p>This site uses Google Analytics to count visits. Allow analytics cookies?</p>
+  <button class="yes" data-c="granted">Accept</button>
+  <button data-c="denied">Decline</button>
+</div>
 <script>
   (function () {
     const box = document.getElementById("consent");

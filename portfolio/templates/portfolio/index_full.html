@@ -248,5 +248,6 @@
   document.addEventListener('keydown', e => { if (!lb.classList.contains('on')) return;
     if (e.key === 'Escape') lb.classList.remove('on'); if (e.key === 'ArrowLeft') show(cur - 1); if (e.key === 'ArrowRight') show(cur + 1); });
 </script>
+{% include "portfolio/_ga.html" %}
 </body>
 </html>
