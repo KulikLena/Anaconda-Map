@@ -22,6 +22,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("funds/", RedirectView.as_view(url="/", permanent=False)),   # old address -> dashboard
     path("projects/", include("projects.urls")),
+    path("portfolio/", include("portfolio.urls")),                    # portfolio page
     path("stock/", include("stock.urls")),                            # Vilnius office stock 3D map
     path("", include("funds.urls")),                                  # dashboard is the home page
 ]

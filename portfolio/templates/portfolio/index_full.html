@@ -1,0 +1,213 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elena Kulik · Real estate research & visual analytics</title>
+<meta name="description" content="Portfolio: investment memoranda, location analytics and interactive maps for commercial real estate in the Baltics.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0b1655; --blue:#1f5af0; --sky:#e3e9fb; --lime:#c4d82e; --ink:#1b2140; --muted:#5d6482; --paper:#ffffff; --line:#dfe4f2;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--paper);color:var(--ink);font:400 16px/1.6 Poppins,Arial,sans-serif}
+  a{color:var(--blue)}
+  img{display:block;max-width:100%}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 32px}
+
+  /* nav */
+  nav{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
+  nav b{font-weight:800;color:var(--navy);letter-spacing:-.01em}
+  nav ul{display:flex;gap:6px;list-style:none;margin:0;padding:0}
+  nav a{display:block;padding:7px 14px;border-radius:999px;color:var(--navy);text-decoration:none;font-size:14px;font-weight:500}
+  nav a:hover{background:var(--sky)}
+
+  /* hero */
+  .hero{position:relative;color:#fff;background:var(--navy) url("{% static 'portfolio/img/hero.jpg' %}") 70% 40%/cover}
+  .hero:before{content:"";position:absolute;inset:0;background:linear-gradient(100deg,rgba(11,22,85,.94) 0%,rgba(11,22,85,.78) 48%,rgba(11,22,85,.25) 100%)}
+  .hero .wrap{position:relative;padding-top:120px;padding-bottom:110px}
+  .kicker{font-size:13px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--lime)}
+  .hero h1{margin:18px 0 18px;font-weight:800;font-size:clamp(38px,5.6vw,68px);line-height:1.02;letter-spacing:-.025em;max-width:780px}
+  .hero p{max-width:620px;font-size:18px;color:#dbe2ff;margin:0}
+  .facts{display:flex;flex-wrap:wrap;gap:40px;margin-top:48px}
+  .facts b{display:block;font-weight:800;font-size:40px;line-height:1;color:#fff}
+  .facts span{font-size:13px;color:#b9c3f0}
+
+  /* sections */
+  section{padding:96px 0;border-bottom:1px solid var(--line)}
+  section.tint{background:#f6f8fe}
+  .label{font-size:13px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--blue)}
+  h2{margin:10px 0 14px;font-weight:800;font-size:clamp(30px,4vw,46px);line-height:1.05;letter-spacing:-.02em;color:var(--navy);text-transform:uppercase}
+  .lead{max-width:760px;color:var(--muted);font-size:17px;margin:0 0 34px}
+  .tags{display:flex;flex-wrap:wrap;gap:8px;margin:-14px 0 34px}
+  .tags span{font-size:12.5px;font-weight:500;color:var(--navy);background:var(--sky);padding:5px 12px;border-radius:999px}
+
+  /* galleries */
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .grid.two{grid-template-columns:repeat(2,1fr)}
+  figure{margin:0;cursor:zoom-in}
+  figure img{border-radius:10px;border:1px solid var(--line);box-shadow:0 10px 30px -18px rgba(11,22,85,.45);transition:transform .2s,box-shadow .2s;aspect-ratio:16/9;object-fit:cover;width:100%;background:#eef1fa}
+  figure:hover img{transform:translateY(-3px);box-shadow:0 18px 40px -20px rgba(11,22,85,.55)}
+  figure.feature{grid-column:span 2;grid-row:span 2}
+  figure.feature img{aspect-ratio:auto;height:100%}
+  figcaption{font-size:13px;color:var(--muted);margin-top:8px}
+  .wide img{aspect-ratio:auto}
+
+  /* interactive cards */
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .card{display:flex;flex-direction:column;border-radius:14px;padding:26px;background:var(--navy);color:#fff;text-decoration:none;min-height:230px;transition:transform .2s}
+  .card:hover{transform:translateY(-4px)}
+  .card .k{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--lime);font-weight:600}
+  .card h3{margin:12px 0 8px;font-size:22px;line-height:1.15;font-weight:800}
+  .card p{margin:0;color:#c8d0f5;font-size:14.5px}
+  .card .go{margin-top:auto;padding-top:18px;font-weight:600;color:#fff}
+  .card.lime{background:#0b0d0c}
+  .card.lime .k{color:#c6ff00}
+
+  /* skills */
+  .skills{display:grid;grid-template-columns:repeat(4,1fr);gap:28px}
+  .skills h4{margin:0 0 10px;font-size:15px;color:var(--navy)}
+  .skills ul{margin:0;padding:0;list-style:none;color:var(--muted);font-size:14.5px}
+  .skills li{padding:3px 0}
+
+  footer{background:var(--navy);color:#c8d0f5;padding:64px 0}
+  footer h2{color:#fff}
+  footer a.btn{display:inline-block;margin-top:10px;background:var(--lime);color:var(--navy);font-weight:600;text-decoration:none;padding:12px 22px;border-radius:999px}
+  footer small{display:block;margin-top:40px;color:#8f99c9}
+
+  /* lightbox */
+  #lb{position:fixed;inset:0;z-index:50;background:rgba(6,10,36,.94);display:none;align-items:center;justify-content:center;padding:40px}
+  #lb.on{display:flex}
+  #lb img{max-height:88vh;max-width:94vw;border-radius:6px}
+  #lb p{position:absolute;bottom:16px;left:0;right:0;text-align:center;color:#c8d0f5;font-size:14px;margin:0}
+  #lb button{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.12);border:0;color:#fff;font-size:28px;width:52px;height:52px;border-radius:50%;cursor:pointer}
+  #lb .prev{left:18px} #lb .next{right:18px}
+  #lb .x{top:28px;right:18px;transform:none;font-size:22px}
+
+  @media (max-width:900px){
+    .grid,.cards{grid-template-columns:1fr 1fr} .skills{grid-template-columns:1fr 1fr}
+    figure.feature{grid-column:span 2;grid-row:auto}
+    nav ul{display:none}
+  }
+  @media (max-width:560px){
+    .wrap{padding:0 16px} section{padding:64px 0}
+    .grid,.grid.two,.cards,.skills{grid-template-columns:1fr} figure.feature{grid-column:auto}
+    .facts{gap:24px} .facts b{font-size:32px}
+  }
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <b>Elena Kulik</b>
+  <ul>
+    <li><a href="#memoranda">Investment memoranda</a></li>
+    <li><a href="#analytics">Location analytics</a></li>
+    <li><a href="#interactive">Interactive maps</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <div class="kicker">Commercial real estate · Baltics</div>
+  <h1>Research, valuation and visual analytics for real estate</h1>
+  <p>I turn market data into documents and maps that investors read: investment memoranda, location studies, catchment models and interactive dashboards.</p>
+  <div class="facts">
+    <div><b>16+</b><span>years in valuation and research</span></div>
+    <div><b>150</b><span>Vilnius offices mapped in 3D</span></div>
+    <div><b>CEE</b><span>&amp; Baltic market coverage</span></div>
+  </div>
+</div></header>
+
+<section id="memoranda"><div class="wrap">
+  <div class="label">Case study 01</div>
+  <h2>Investment memorandum</h2>
+  <p class="lead">A complete sale memorandum for a serviced-apartment and coworking asset in Vilnius: from region and city economics down to the neighbourhood, technical description, sustainability and the offer process. Client data is replaced with placeholder text.</p>
+  <div class="tags"><span>Investment memoranda</span><span>Market research</span><span>Macro &amp; micro location</span><span>Data visualisation</span><span>BREEAM / ESG</span></div>
+  <div class="grid" data-gallery>
+    <figure class="feature"><img src="{% static 'portfolio/img/im-06-region.jpg' %}" alt="Region statistics" loading="lazy"><figcaption>Region statistics: CEE &amp; Baltics</figcaption></figure>
+    <figure><img src="{% static 'portfolio/img/im-02-contents-sm.jpg' %}" data-full="{% static 'portfolio/img/im-02-contents.jpg' %}" alt="Table of contents" loading="lazy"><figcaption>Navigation and structure</figcaption></figure>
+    <figure><img src="{% static 'portfolio/img/im-03-highlights-sm.jpg' %}" data-full="{% static 'portfolio/img/im-03-highlights.jpg' %}" alt="Investment highlights" loading="lazy"><figcaption>Investment highlights</figcaption></figure>
+    <figure><img src="{% static 'portfolio/img/im-07-lithuania-sm.jpg' %}" data-full="{% static 'portfolio/img/im-07-lithuania.jpg' %}" alt="Lithuania macro" loading="lazy"><figcaption>Lithuania: economy and wages</figcaption></figure>
+    <figure><img src="{% static 'portfolio/img/im-08-city-sm.jpg' %}" data-full="{% static 'portfolio/img/im-08-city.jpg' %}" alt="Vilnius city" loading="lazy"><figcaption>Vilnius: population, wages, housing</figcaption></figure>
+    <figure><img src="{% static 'portfolio/img/im-09-location-sm.jpg' %}" data-full="{% static 'portfolio/img/im-09-location.jpg' %}" alt="Location and catchment" loading="lazy"><figcaption>12-minute catchment and density</figcaption></figure>
+    <figure><img src="{% static 'portfolio/img/im-10-accessibility-sm.jpg' %}" data-full="{% static 'portfolio/img/im-10-accessibility.jpg' %}" alt="Accessibility" loading="lazy"><figcaption>Accessibility</figcaption></figure>
+    <figure><img src="{% static 'portfolio/img/im-11-neighbourhood-sm.jpg' %}" data-full="{% static 'portfolio/img/im-11-neighbourhood.jpg' %}" alt="Neighbourhood" loading="lazy"><figcaption>Neighbourhood: 20-minute walk</figcaption></figure>
+    <figure><img src="{% static 'portfolio/img/im-04-key-considerations-sm.jpg' %}" data-full="{% static 'portfolio/img/im-04-key-considerations.jpg' %}" alt="Key considerations" loading="lazy"><figcaption>Key considerations</figcaption></figure>
+    <figure><img src="{% static 'portfolio/img/im-12-technical-sm.jpg' %}" data-full="{% static 'portfolio/img/im-12-technical.jpg' %}" alt="Technical description" loading="lazy"><figcaption>Building technical description</figcaption></figure>
+    <figure><img src="{% static 'portfolio/img/im-13-sustainability-sm.jpg' %}" data-full="{% static 'portfolio/img/im-13-sustainability.jpg' %}" alt="Sustainability" loading="lazy"><figcaption>Sustainability: BREEAM In-Use</figcaption></figure>
+    <figure><img src="{% static 'portfolio/img/im-05-offer-structure-sm.jpg' %}" data-full="{% static 'portfolio/img/im-05-offer-structure.jpg' %}" alt="Offer structure" loading="lazy"><figcaption>Indicative offer structure and timeline</figcaption></figure>
+  </div>
+</div></section>
+
+<section class="tint"><div class="wrap">
+  <div class="label">Case study 02</div>
+  <h2>Office marketing &amp; sale materials</h2>
+  <p class="lead">A marketing brochure for CYBER CITY, a 35,000 m² Grade A office scheme on a brownfield site in Naujamiestis, and an investment memorandum for a CBD office property with office market, pipeline and neighbourhood analysis.</p>
+  <div class="tags"><span>Marketing brochures</span><span>Office market</span><span>Flex space</span><span>Pipeline analysis</span><span>Custom maps</span></div>
+  <div class="grid two" data-gallery>
+    <figure class="wide"><img src="{% static 'portfolio/img/cyber-city-sm.jpg' %}" data-full="{% static 'portfolio/img/cyber-city.jpg' %}" alt="Cyber City brochure" loading="lazy"><figcaption>CYBER CITY: background, flex market, location, accessibility</figcaption></figure>
+    <figure class="wide"><img src="{% static 'portfolio/img/office-im-sm.jpg' %}" data-full="{% static 'portfolio/img/office-im.jpg' %}" alt="Office investment memorandum" loading="lazy"><figcaption>Office IM: market, neighbourhood, A-class pipeline, accessibility</figcaption></figure>
+  </div>
+</div></section>
+
+<section id="analytics"><div class="wrap">
+  <div class="label">Case study 03</div>
+  <h2>Location analytics &amp; gravity models</h2>
+  <p class="lead">Gravity (Huff) models that forecast customer traffic for a new retail location against its competitors. The grid is built on residential data, so the result is the number of households in the catchment, weighted by their probability of visiting. For a new 50,000 m² shopping centre in Kaunas, the model estimated about 103,000 regular visitors, around 29,000 a day.</p>
+  <div class="tags"><span>Huff model</span><span>Catchment analysis</span><span>GIS</span><span>Retail feasibility</span></div>
+  <div class="grid two" data-gallery>
+    <figure class="wide"><img src="{% static 'portfolio/img/gravity-vilnius-sm.jpg' %}" data-full="{% static 'portfolio/img/gravity-vilnius.jpg' %}" alt="Gravity model Vilnius" loading="lazy"><figcaption>Vilnius: visit probability for a potential grocery location</figcaption></figure>
+    <figure class="wide"><img src="{% static 'portfolio/img/huff-kaunas-sm.jpg' %}" data-full="{% static 'portfolio/img/huff-kaunas.jpg' %}" alt="Huff model Kaunas" loading="lazy"><figcaption>Kaunas: shopping-centre catchment, Huff model</figcaption></figure>
+  </div>
+</div></section>
+
+<section id="interactive" class="tint"><div class="wrap">
+  <div class="label">Case study 04</div>
+  <h2>Interactive maps &amp; data stories</h2>
+  <p class="lead">Live web pages built with Python, Django and Mapbox. They open in any browser and are made for sharing on LinkedIn.</p>
+  <div class="cards">
+    <a class="card" href="/stock/"><span class="k">3D map</span><h3>Vilnius office stock, 1999–2026</h3><p>150 modern office buildings rise year by year in 3D, coloured by business district, with stock and pipeline by zone.</p><span class="go">Open the map →</span></a>
+    <a class="card lime" href="/stock/route/"><span class="k">Route optimisation</span><h3>One drive to every office building</h3><p>The shortest driving loop through all 150 offices along real streets: 103 km and almost 4 hours.</p><span class="go">Watch the route →</span></a>
+    <a class="card" href="/"><span class="k">Dashboard</span><h3>Real estate funds in Europe</h3><p>Fund assets relative to GDP by country, 2008 to today, with a year slider and map.</p><span class="go">Open the dashboard →</span></a>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="label">What I do</div>
+  <h2>Skills</h2>
+  <div class="skills">
+    <div><h4>Valuation &amp; advisory</h4><ul><li>Commercial property valuation</li><li>Cost estimation</li><li>Asset and portfolio reviews</li><li>Development feasibility</li></ul></div>
+    <div><h4>Research</h4><ul><li>Office, retail and residential markets</li><li>Macro and city economics</li><li>Pipeline and stock databases</li><li>ESG and BREEAM context</li></ul></div>
+    <div><h4>Documents</h4><ul><li>Investment memoranda</li><li>Marketing brochures</li><li>Market reports</li><li>Pitch and tender decks</li></ul></div>
+    <div><h4>Data &amp; maps</h4><ul><li>GIS and catchment models</li><li>Python, Django</li><li>Mapbox, MapLibre</li><li>Data video for social media</li></ul></div>
+  </div>
+</div></section>
+
+<footer id="contact"><div class="wrap">
+  <div class="label" style="color:var(--lime)">Contact</div>
+  <h2>Let's work together</h2>
+  <p>Available for research, valuation support and data visualisation projects.</p>
+  <a class="btn" href="https://www.upwork.com/freelancers/~014c737b9995107c80" target="_blank" rel="noopener">Hire me on Upwork</a>
+  <small>Client names and confidential figures in sample documents are replaced with placeholders. Maps © OpenStreetMap contributors, Mapbox.</small>
+</div></footer>
+
+<div id="lb" role="dialog" aria-modal="true"><button class="x" aria-label="Close">✕</button><button class="prev" aria-label="Previous">‹</button><img alt=""><p></p><button class="next" aria-label="Next">›</button></div>
+<script>
+  const figs = [...document.querySelectorAll('[data-gallery] figure')], lb = document.getElementById('lb');
+  let cur = 0;
+  const show = i => { cur = (i + figs.length) % figs.length; const im = figs[cur].querySelector('img');
+    lb.querySelector('img').src = im.dataset.full || im.src; lb.querySelector('p').textContent = figs[cur].querySelector('figcaption').textContent; lb.classList.add('on'); };
+  figs.forEach((f, i) => f.addEventListener('click', () => show(i)));
+  lb.querySelector('.prev').onclick = e => { e.stopPropagation(); show(cur - 1); };
+  lb.querySelector('.next').onclick = e => { e.stopPropagation(); show(cur + 1); };
+  lb.onclick = e => { if (e.target === lb || e.target.classList.contains('x')) lb.classList.remove('on'); };
+  document.addEventListener('keydown', e => { if (!lb.classList.contains('on')) return;
+    if (e.key === 'Escape') lb.classList.remove('on'); if (e.key === 'ArrowLeft') show(cur - 1); if (e.key === 'ArrowRight') show(cur + 1); });
+</script>
+</body>
+</html>

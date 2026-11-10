@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "projects",
     "funds",
     "stock",
+    "portfolio",
 ]
 
 MIDDLEWARE = [
