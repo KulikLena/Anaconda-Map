@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Elena Kulik · Real estate research & visual analytics</title>
-<meta name="description" content="Portfolio: investment memoranda, location analytics and interactive maps for commercial real estate in the Baltics.">
+<title>Elena Kulik · Real estate research & analytics</title>
+<meta name="description" content="Portfolio: investment memorandums and teasers, location analytics and interactive maps for commercial real estate in the Baltics.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;800&display=swap" rel="stylesheet">
 <style>
@@ -77,6 +77,7 @@
   footer{background:var(--navy);color:#c8d0f5;padding:64px 0}
   footer h2{color:#fff}
   footer a.btn{display:inline-block;margin-top:10px;background:var(--lime);color:var(--navy);font-weight:600;text-decoration:none;padding:12px 22px;border-radius:999px}
+  footer a.btn.alt{background:transparent;color:var(--lime);border:1px solid var(--lime);padding:11px 21px;margin-left:10px}
   footer small{display:block;margin-top:40px;color:#8f99c9}
 
   /* lightbox */
@@ -88,6 +89,22 @@
   #lb .prev{left:18px} #lb .next{right:18px}
   #lb .x{top:28px;right:18px;transform:none;font-size:22px}
 
+
+  /* previews inside the cards */
+  .card .pv{position:relative;margin:-26px -26px 22px;aspect-ratio:4/3;overflow:hidden;border-radius:14px 14px 0 0;background:#0b0d0c}
+  .card .pv iframe{position:absolute;left:0;top:0;width:250%;height:250%;border:0;transform:scale(.4);transform-origin:0 0;pointer-events:none}
+  .card .pv video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
+  /* (unused) */
+  .live{display:grid;grid-template-columns:1fr;gap:28px}
+  .live .item{display:grid;grid-template-columns:1.6fr 1fr;gap:26px;align-items:center}
+  .live .frame{position:relative;border-radius:14px;overflow:hidden;background:#0b0d0c;aspect-ratio:16/10;box-shadow:0 18px 40px -22px rgba(11,22,85,.6)}
+  .live iframe,.live video{position:absolute;inset:0;width:100%;height:100%;border:0;object-fit:cover}
+  .live .frame a{position:absolute;inset:0;z-index:2}
+  .live .k{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--blue);font-weight:600}
+  .live h3{margin:8px 0 10px;font-size:26px;line-height:1.15;font-weight:800;color:var(--navy)}
+  .live p{margin:0 0 18px;color:var(--muted)}
+  .live .btn2{display:inline-block;background:var(--navy);color:#fff;text-decoration:none;font-weight:600;padding:11px 20px;border-radius:999px}
+  @media (max-width:900px){ .live .item{grid-template-columns:1fr} }
   @media (max-width:900px){
     .grid,.cards{grid-template-columns:1fr 1fr} .skills{grid-template-columns:1fr 1fr}
     figure.feature{grid-column:span 2;grid-row:auto}
@@ -105,7 +122,8 @@
 <nav><div class="wrap">
   <b>Elena Kulik</b>
   <ul>
-    <li><a href="#memoranda">Investment memoranda</a></li>
+    <li><a href="#feasibility">Feasibility studies</a></li>
+    <li><a href="#memoranda">Investment memorandums &amp; teasers</a></li>
     <li><a href="#analytics">Location analytics</a></li>
     <li><a href="#interactive">Interactive maps</a></li>
     <li><a href="#contact">Contact</a></li>
@@ -114,69 +132,96 @@
 
 <header class="hero"><div class="wrap">
   <div class="kicker">Commercial real estate · Baltics</div>
-  <h1>Research, valuation and visual analytics for real estate</h1>
+  <h1>Research, valuation and analytics for real estate</h1>
+  <p>Financial models, Feasibility studies, valuation, GIS-analysis, marketing materials</p>
   <div class="facts">
     <div><b>16+</b><span>years in valuation and research</span></div>
-    <div><b>150</b><span>Vilnius offices mapped in 3D</span></div>
     <div><b>CEE</b><span>&amp; Baltic market coverage</span></div>
   </div>
 </div></header>
 
-<section id="memoranda"><div class="wrap">
+<section id="feasibility"><div class="wrap">
   <div class="label">Case study 01</div>
-  <h2>Investment memorandum</h2>
-  <div class="grid" data-gallery>
-    <figure class="feature"><img src="{% static 'portfolio/img/im-06-region.jpg' %}" alt="Region statistics" loading="lazy"></figure>
-    <figure><img src="{% static 'portfolio/img/im-02-contents-sm.jpg' %}" data-full="{% static 'portfolio/img/im-02-contents.jpg' %}" alt="Table of contents" loading="lazy"></figure>
-    <figure><img src="{% static 'portfolio/img/im-03-highlights-sm.jpg' %}" data-full="{% static 'portfolio/img/im-03-highlights.jpg' %}" alt="Investment highlights" loading="lazy"></figure>
-    <figure><img src="{% static 'portfolio/img/im-07-lithuania-sm.jpg' %}" data-full="{% static 'portfolio/img/im-07-lithuania.jpg' %}" alt="Lithuania macro" loading="lazy"></figure>
-    <figure><img src="{% static 'portfolio/img/im-08-city-sm.jpg' %}" data-full="{% static 'portfolio/img/im-08-city.jpg' %}" alt="Vilnius city" loading="lazy"></figure>
-    <figure ><img src="{% static 'portfolio/img/kaunas-income-sm.jpg' %}" data-full="{% static 'portfolio/img/kaunas-income.jpg' %}" alt="Kaunas: income levels" loading="lazy"></figure>
-    <figure><img src="{% static 'portfolio/img/im-09-location-sm.jpg' %}" data-full="{% static 'portfolio/img/im-09-location.jpg' %}" alt="Location and catchment" loading="lazy"></figure>
-    <figure><img src="{% static 'portfolio/img/im-10-accessibility-sm.jpg' %}" data-full="{% static 'portfolio/img/im-10-accessibility.jpg' %}" alt="Accessibility" loading="lazy"></figure>
-    <figure><img src="{% static 'portfolio/img/im-11-neighbourhood-sm.jpg' %}" data-full="{% static 'portfolio/img/im-11-neighbourhood.jpg' %}" alt="Neighbourhood" loading="lazy"></figure>
-    <figure><img src="{% static 'portfolio/img/im-04-key-considerations-sm.jpg' %}" data-full="{% static 'portfolio/img/im-04-key-considerations.jpg' %}" alt="Key considerations" loading="lazy"></figure>
-    <figure><img src="{% static 'portfolio/img/im-12-technical-sm.jpg' %}" data-full="{% static 'portfolio/img/im-12-technical.jpg' %}" alt="Technical description" loading="lazy"></figure>
-    <figure><img src="{% static 'portfolio/img/im-13-sustainability-sm.jpg' %}" data-full="{% static 'portfolio/img/im-13-sustainability.jpg' %}" alt="Sustainability" loading="lazy"></figure>
-    <figure><img src="{% static 'portfolio/img/im-05-offer-structure-sm.jpg' %}" data-full="{% static 'portfolio/img/im-05-offer-structure.jpg' %}" alt="Offer structure" loading="lazy"></figure>
+  <h2>Feasibility studies</h2>
+  <p class="lead">Market research, tenant mix, massing on the site and financial modelling.</p>
+  <div class="tags"><span>Market research</span><span>Tenant mix</span><span>Massing</span><span>Financial modelling</span><span>Highest and best use</span></div>
+  <div class="grid two" data-gallery>
+    <figure class="wide"><img src="{% static 'portfolio/img/feas-residential-sm.jpg' %}" data-full="{% static 'portfolio/img/feas-residential.jpg' %}" alt="Residential market" loading="lazy"><figcaption>Residential market</figcaption></figure>
+    <figure class="wide"><img src="{% static 'portfolio/img/feas-industrial-sm.jpg' %}" data-full="{% static 'portfolio/img/feas-industrial.jpg' %}" alt="Industrial market" loading="lazy"><figcaption>Industrial market</figcaption></figure>
+    <figure class="wide"><img src="{% static 'portfolio/img/feas-moodboard-sm.jpg' %}" data-full="{% static 'portfolio/img/feas-moodboard.jpg' %}" alt="Concept mood board" loading="lazy"><figcaption>Concept mood board</figcaption></figure>
+    <figure class="wide"><img src="{% static 'portfolio/img/feas-sketch-elev-sm.jpg' %}" data-full="{% static 'portfolio/img/feas-sketch-elev.jpg' %}" alt="Concept sketch: elevation" loading="lazy"><figcaption>Concept sketch: elevation</figcaption></figure>
+    <figure class="wide"><img src="{% static 'portfolio/img/feas-sensitivity-sm.jpg' %}" data-full="{% static 'portfolio/img/feas-sensitivity.jpg' %}" alt="Sensitivity analysis" loading="lazy"><figcaption>Sensitivity analysis</figcaption></figure>
+    <figure class="wide"><img src="{% static 'portfolio/img/raud-retail-sm.jpg' %}" data-full="{% static 'portfolio/img/raud-retail.jpg' %}" alt="Second study: retail market, income levels" loading="lazy"><figcaption>Second study: retail market, income levels</figcaption></figure>
+    <figure class="wide"><img src="{% static 'portfolio/img/raud-housing-sm.jpg' %}" data-full="{% static 'portfolio/img/raud-housing.jpg' %}" alt="Second study: housing market" loading="lazy"><figcaption>Second study: housing market</figcaption></figure>
+    <figure class="wide"><img src="{% static 'portfolio/img/raud-sport-sm.jpg' %}" data-full="{% static 'portfolio/img/raud-sport.jpg' %}" alt="Second study: sports clubs market" loading="lazy"><figcaption>Second study: sports clubs market</figcaption></figure>
+    <figure class="wide"><img src="{% static 'portfolio/img/raud-sketch-a-sm.jpg' %}" data-full="{% static 'portfolio/img/raud-sketch-a.jpg' %}" alt="Second study: concept sketch, scenario A" loading="lazy"><figcaption>Second study: concept sketch, scenario A</figcaption></figure>
   </div>
 </div></section>
 
-<section class="tint"><div class="wrap">
+<section id="memoranda" class="tint"><div class="wrap">
   <div class="label">Case study 02</div>
-  <h2>Office marketing &amp; sale materials</h2>
-  <div class="grid two" data-gallery>
-    <figure class="wide"><img src="{% static 'portfolio/img/cyber-city-sm.jpg' %}" data-full="{% static 'portfolio/img/cyber-city.jpg' %}" alt="Cyber City brochure" loading="lazy"></figure>
-    <figure class="wide"><img src="{% static 'portfolio/img/office-im-sm.jpg' %}" data-full="{% static 'portfolio/img/office-im.jpg' %}" alt="Office investment memorandum" loading="lazy"></figure>
-  </div>
-</div></section>
-
-<section id="analytics"><div class="wrap">
-  <div class="label">Case study 03</div>
-  <h2>Location analytics &amp; gravity models</h2>
-  <div class="grid two" data-gallery>
-    <figure class="wide"><img src="{% static 'portfolio/img/gravity-vilnius-sm.jpg' %}" data-full="{% static 'portfolio/img/gravity-vilnius.jpg' %}" alt="Gravity model Vilnius" loading="lazy"></figure>
-    <figure class="wide"><img src="{% static 'portfolio/img/huff-kaunas-sm.jpg' %}" data-full="{% static 'portfolio/img/huff-kaunas.jpg' %}" alt="Huff model Kaunas" loading="lazy"></figure>
-  </div>
-</div></section>
-
-<section id="interactive" class="tint"><div class="wrap">
-  <div class="label">Case study 04</div>
-  <h2>Interactive maps &amp; data stories</h2>
-  <div class="cards">
-    <a class="card" href="/stock/"><span class="k">3D map</span><h3>Vilnius office stock, 1999–2026</h3><span class="go">Open the map →</span></a>
-    <a class="card lime" href="/stock/route/"><span class="k">Route optimisation</span><h3>One drive to every office building</h3><span class="go">Watch the route →</span></a>
-    <a class="card" href="/"><span class="k">Dashboard</span><h3>Real estate funds in Europe</h3><span class="go">Open the dashboard →</span></a>
+  <h2>Investment memorandum</h2>
+  <p class="lead">A complete sale memorandum for a serviced-apartment and coworking asset in Vilnius: from region and city economics down to the neighbourhood, technical description, sustainability and the offer process. Client data is replaced with placeholder text.</p>
+  <div class="tags"><span>Investment memorandums &amp; teasers</span><span>Market research</span><span>Macro &amp; micro location</span><span>Data visualisation</span><span>BREEAM / ESG</span></div>
+  <div class="grid" data-gallery>
+    <figure class="feature"><img src="{% static 'portfolio/img/im-06-region.jpg' %}" alt="Region statistics" loading="lazy"><figcaption>Region statistics: CEE &amp; Baltics</figcaption></figure>
+    <figure><img src="{% static 'portfolio/img/im-02-contents-sm.jpg' %}" data-full="{% static 'portfolio/img/im-02-contents.jpg' %}" alt="Table of contents" loading="lazy"><figcaption>Navigation and structure</figcaption></figure>
+    <figure><img src="{% static 'portfolio/img/im-03-highlights-sm.jpg' %}" data-full="{% static 'portfolio/img/im-03-highlights.jpg' %}" alt="Investment highlights" loading="lazy"><figcaption>Investment highlights</figcaption></figure>
+    <figure><img src="{% static 'portfolio/img/im-07-lithuania-sm.jpg' %}" data-full="{% static 'portfolio/img/im-07-lithuania.jpg' %}" alt="Lithuania macro" loading="lazy"><figcaption>Lithuania: economy and wages</figcaption></figure>
+    <figure><img src="{% static 'portfolio/img/im-08-city-sm.jpg' %}" data-full="{% static 'portfolio/img/im-08-city.jpg' %}" alt="Vilnius city" loading="lazy"><figcaption>Vilnius: population, wages, housing</figcaption></figure>
+    <figure><img src="{% static 'portfolio/img/kaunas-income-sm.jpg' %}" data-full="{% static 'portfolio/img/kaunas-income.jpg' %}" alt="Kaunas income levels" loading="lazy"><figcaption>Kaunas: income levels across the Baltics</figcaption></figure>
+    <figure><img src="{% static 'portfolio/img/im-09-location-sm.jpg' %}" data-full="{% static 'portfolio/img/im-09-location.jpg' %}" alt="Location and catchment" loading="lazy"><figcaption>12-minute catchment and density</figcaption></figure>
+    <figure><img src="{% static 'portfolio/img/im-10-accessibility-sm.jpg' %}" data-full="{% static 'portfolio/img/im-10-accessibility.jpg' %}" alt="Accessibility" loading="lazy"><figcaption>Accessibility</figcaption></figure>
+    <figure><img src="{% static 'portfolio/img/im-11-neighbourhood-sm.jpg' %}" data-full="{% static 'portfolio/img/im-11-neighbourhood.jpg' %}" alt="Neighbourhood" loading="lazy"><figcaption>Neighbourhood: 20-minute walk</figcaption></figure>
+    <figure><img src="{% static 'portfolio/img/im-04-key-considerations-sm.jpg' %}" data-full="{% static 'portfolio/img/im-04-key-considerations.jpg' %}" alt="Key considerations" loading="lazy"><figcaption>Key considerations</figcaption></figure>
+    <figure><img src="{% static 'portfolio/img/im-12-technical-sm.jpg' %}" data-full="{% static 'portfolio/img/im-12-technical.jpg' %}" alt="Technical description" loading="lazy"><figcaption>Building technical description</figcaption></figure>
+    <figure><img src="{% static 'portfolio/img/im-13-sustainability-sm.jpg' %}" data-full="{% static 'portfolio/img/im-13-sustainability.jpg' %}" alt="Sustainability" loading="lazy"><figcaption>Sustainability: BREEAM In-Use</figcaption></figure>
+    <figure><img src="{% static 'portfolio/img/im-05-offer-structure-sm.jpg' %}" data-full="{% static 'portfolio/img/im-05-offer-structure.jpg' %}" alt="Offer structure" loading="lazy"><figcaption>Indicative offer structure and timeline</figcaption></figure>
   </div>
 </div></section>
 
 <section><div class="wrap">
+  <div class="label">Case study 03</div>
+  <h2>Other marketing &amp; sale materials</h2>
+  <div class="tags"><span>Marketing brochures</span><span>Office market</span><span>Flex space</span><span>Pipeline analysis</span><span>Custom maps</span></div>
+  <div class="grid two" data-gallery>
+    <figure class="wide"><img src="{% static 'portfolio/img/cyber-city-sm.jpg' %}" data-full="{% static 'portfolio/img/cyber-city.jpg' %}" alt="Office marketing brochure" loading="lazy"><figcaption>Marketing brochure: background, flex market, location, accessibility</figcaption></figure>
+    <figure class="wide"><img src="{% static 'portfolio/img/office-im-sm.jpg' %}" data-full="{% static 'portfolio/img/office-im.jpg' %}" alt="Office investment memorandum" loading="lazy"><figcaption>Office IM: market, neighbourhood, A-class pipeline, accessibility</figcaption></figure>
+  </div>
+</div></section>
+
+<section id="analytics" class="tint"><div class="wrap">
+  <div class="label">Case study 04</div>
+  <h2>Location analytics &amp; gravity models</h2>
+  <p class="lead">Gravity (Huff) models that forecast customer traffic for a new retail location against its competitors. The grid is built on residential data, so the result is the number of households in the catchment, weighted by their probability of visiting.</p>
+  <div class="tags"><span>Huff model</span><span>Catchment analysis</span><span>GIS</span><span>Retail feasibility</span></div>
+  <div class="grid two" data-gallery>
+    <figure class="wide"><img src="{% static 'portfolio/img/gravity-vilnius-sm.jpg' %}" data-full="{% static 'portfolio/img/gravity-vilnius.jpg' %}" alt="Gravity model Vilnius" loading="lazy"><figcaption>Vilnius: visit probability for a potential grocery location</figcaption></figure>
+    <figure class="wide"><img src="{% static 'portfolio/img/gis-gravity-sm.jpg' %}" data-full="{% static 'portfolio/img/gis-gravity.jpg' %}" alt="Investment memorandum: gravity model, catchment split between two regional malls" loading="lazy"><figcaption>Investment memorandum: gravity model, catchment split between two regional malls</figcaption></figure>
+    <figure class="wide"><img src="{% static 'portfolio/img/gis-network-sm.jpg' %}" data-full="{% static 'portfolio/img/gis-network.jpg' %}" alt="Investment memorandum: retail network on a 1×1 km population grid" loading="lazy"><figcaption>Investment memorandum: retail network on a 1×1 km population grid</figcaption></figure>
+    <figure class="wide"><img src="{% static 'portfolio/img/gis-stock-sm.jpg' %}" data-full="{% static 'portfolio/img/gis-stock.jpg' %}" alt="Investment memorandum: office stock map" loading="lazy"><figcaption>Investment memorandum: office stock map</figcaption></figure>
+    <figure class="wide"><img src="{% static 'portfolio/img/gis-site-sm.jpg' %}" data-full="{% static 'portfolio/img/gis-site.jpg' %}" alt="Investment memorandum: site location and planning parameters" loading="lazy"><figcaption>Investment memorandum: site location and planning parameters</figcaption></figure>
+  </div>
+</div></section>
+
+<section id="interactive"><div class="wrap">
+  <div class="label">Case study 05</div>
+  <h2>Interactive maps &amp; data stories</h2>
+  <p class="lead">Live web pages built with Python, Django and Mapbox. They open in any browser and are made for sharing on LinkedIn.</p>
+  <div class="cards">
+    <a class="card" href="/stock/"><div class="pv"><iframe src="/stock/" title="Vilnius office stock 3D map" loading="lazy" tabindex="-1"></iframe></div><span class="k">3D map</span><h3>Vilnius office stock, 1999–2026</h3><p>Modern office buildings rise year by year in 3D, coloured by business district, with stock and pipeline by zone.</p><span class="go">Open the map →</span></a>
+    <a class="card lime" href="/stock/route/"><div class="pv"><video src="{% static 'stock/vilnius_office_route.mp4' %}" autoplay muted loop playsinline preload="metadata"></video></div><span class="k">Route optimisation</span><h3>One drive to every office building</h3><p>The shortest driving loop through all Vilnius office buildings along real streets: 103 km and almost 4 hours.</p><span class="go">Watch the route →</span></a>
+    <a class="card" href="/"><div class="pv"><iframe src="/" title="Real estate funds dashboard" loading="lazy" tabindex="-1"></iframe></div><span class="k">Dashboard</span><h3>Real estate funds in Europe</h3><p>Fund assets relative to GDP by country, 2008 to today, with a year slider and map.</p><span class="go">Open the dashboard →</span></a>
+  </div>
+</div></section>
+
+<section class="tint"><div class="wrap">
   <div class="label">What I do</div>
   <h2>Skills</h2>
   <div class="skills">
-    <div><h4>Valuation &amp; advisory</h4><ul><li>Commercial property valuation</li><li>Cost estimation</li><li>Asset and portfolio reviews</li><li>Development feasibility</li></ul></div>
+    <div><h4>Valuation &amp; advisory</h4><ul><li>Commercial property valuation</li><li>Cost estimation</li><li>Asset and portfolio reviews</li><li>Feasibility studies</li><li>Financial models</li></ul></div>
     <div><h4>Research</h4><ul><li>Office, retail and residential markets</li><li>Macro and city economics</li><li>Pipeline and stock databases</li><li>ESG and BREEAM context</li></ul></div>
-    <div><h4>Documents</h4><ul><li>Investment memoranda</li><li>Marketing brochures</li><li>Market reports</li><li>Pitch and tender decks</li></ul></div>
+    <div><h4>Documents</h4><ul><li>Investment memorandums &amp; teasers</li><li>Marketing brochures</li><li>Market reports</li><li>Pitch and tender decks</li></ul></div>
     <div><h4>Data &amp; maps</h4><ul><li>GIS and catchment models</li><li>Python, Django</li><li>Mapbox, MapLibre</li><li>Data video for social media</li></ul></div>
   </div>
 </div></section>
@@ -184,7 +229,10 @@
 <footer id="contact"><div class="wrap">
   <div class="label" style="color:var(--lime)">Contact</div>
   <h2>Let's work together</h2>
+  <p>Available for research, valuation support and data visualisation projects.</p>
   <a class="btn" href="https://www.upwork.com/freelancers/~014c737b9995107c80" target="_blank" rel="noopener">Hire me on Upwork</a>
+  <a class="btn alt" href="mailto:lenakulik6556@gmail.com">Write me an e-mail</a>
+  <small>Client names and confidential figures in sample documents are replaced with placeholders. Maps © OpenStreetMap contributors, Mapbox.</small>
 </div></footer>
 
 <div id="lb" role="dialog" aria-modal="true"><button class="x" aria-label="Close">✕</button><button class="prev" aria-label="Previous">‹</button><img alt=""><p></p><button class="next" aria-label="Next">›</button></div>
@@ -192,7 +240,7 @@
   const figs = [...document.querySelectorAll('[data-gallery] figure')], lb = document.getElementById('lb');
   let cur = 0;
   const show = i => { cur = (i + figs.length) % figs.length; const im = figs[cur].querySelector('img');
-    lb.querySelector('img').src = im.dataset.full || im.src;  lb.classList.add('on'); };
+    lb.querySelector('img').src = im.dataset.full || im.src; lb.querySelector('p').textContent = figs[cur].querySelector('figcaption').textContent; lb.classList.add('on'); };
   figs.forEach((f, i) => f.addEventListener('click', () => show(i)));
   lb.querySelector('.prev').onclick = e => { e.stopPropagation(); show(cur - 1); };
   lb.querySelector('.next').onclick = e => { e.stopPropagation(); show(cur + 1); };

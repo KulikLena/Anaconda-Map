@@ -157,3 +157,6 @@ try:
     from local_settings import *  # noqa: F401,F403
 except ImportError:
     pass
+
+# allow own pages (/, /stock/) to be embedded as previews on /portfolio/
+X_FRAME_OPTIONS = "SAMEORIGIN"
