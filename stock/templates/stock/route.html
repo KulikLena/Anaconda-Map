@@ -8,7 +8,7 @@
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.8.0/mapbox-gl.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-  :root{ --ink:#f2f5ea; --muted:#9aa294; --paper:#0b0d0c; --accent:#c6ff00; --panel:rgba(11,13,12,.72); }
+  :root{ --ink:#f2f5ea; --muted:#9aa294; --paper:#0b0d0c; --accent:#1C54F3; --panel:rgba(11,13,12,.72); }
   *{box-sizing:border-box}
   html,body{margin:0;height:100%;background:var(--paper);color:var(--ink);font-family:Inter,Arial,sans-serif;overflow:hidden}
   #map{position:absolute;inset:0}
@@ -20,10 +20,12 @@
   .sub{font-size:15px;color:var(--muted)}
   .stats{left:32px;bottom:120px;display:flex;gap:48px;align-items:flex-end}
   .stat b{display:block;font:800 96px/0.9 Inter,Arial,sans-serif;letter-spacing:-.05em}
-  .stat.km b{color:var(--accent);text-shadow:0 0 18px rgba(198,255,0,.55)}
+  .stat.km b{color:var(--accent);text-shadow:0 0 4px rgba(120,160,255,.9),0 0 14px rgba(28,84,243,1),0 0 34px rgba(28,84,243,.85),0 0 70px rgba(28,84,243,.55)}
   .stat b{text-shadow:0 0 14px rgba(0,0,0,.6)}
   h1{text-shadow:0 0 18px rgba(0,0,0,.6)}
   .stat span{display:inline-block;margin-top:8px;font:500 13px/1.4 "IBM Plex Mono",monospace;letter-spacing:.16em;color:var(--muted);text-transform:uppercase;background:var(--panel);padding:2px 6px}
+  .brand{display:block;height:38px;width:auto;margin-bottom:14px;border-radius:3px}
+  @media (max-width:700px){ .brand{height:28px;margin-bottom:10px} }
   .legend{top:28px;right:32px;display:flex;flex-direction:column;gap:4px;font:400 11px "IBM Plex Mono",monospace;background:var(--panel);color:var(--ink);padding:10px 12px;border-radius:4px}
   .legend i{width:10px;height:10px;display:inline-block;border-radius:2px;margin-right:7px;vertical-align:-1px}
   .legend .line{display:inline-block;width:18px;height:3px;background:var(--accent);box-shadow:0 0 6px var(--accent);margin-right:7px;vertical-align:3px}
@@ -33,7 +35,7 @@
   .ctrl button:hover{background:var(--ink);color:var(--paper)}
   .ctrl input{flex:1;accent-color:var(--accent)}
   .foot{display:flex;justify-content:space-between;gap:16px;margin-top:8px;font:400 10.5px/1.4 "IBM Plex Mono",monospace;color:var(--muted)}
-  .head-dot{width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 0 6px 2px var(--accent),0 0 22px 8px rgba(198,255,0,.55)}
+  .head-dot{width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 0 6px 2px var(--accent),0 0 22px 8px rgba(28,84,243,.8),0 0 50px 18px rgba(28,84,243,.45)}
   @media (max-width:700px){
     .head{left:16px;top:16px;right:16px;max-width:none} h1{font-size:26px} .sub{font-size:13px}
     .legend{top:auto;bottom:230px;right:16px}
@@ -48,13 +50,14 @@
 <div id="map"></div>
 
 <div class="panel head">
+  <img class="brand" src="/static/funds/colliers-logo.png" alt="Colliers" onerror="this.remove()">
   <div class="kicker">Vilnius · office stock</div>
   <h1>One drive to every office building</h1>
   <div class="sub">The shortest driving loop through all 150 modern office buildings in Vilnius.</div>
 </div>
 
 <div class="panel legend">
-  <span><i style="background:#c6ff00;box-shadow:0 0 6px #c6ff00"></i>office building, visited</span>
+  <span><i style="background:#1C54F3;box-shadow:0 0 8px #1C54F3,0 0 16px rgba(28,84,243,.7)"></i>office building, visited</span>
   <span><i style="background:#3a4038"></i>not yet visited</span>
   <span><b class="line"></b>route</span>
 </div>
@@ -73,7 +76,7 @@
   </div>
   <div class="foot">
     <span>Route: near-shortest round trip by car along OpenStreetMap streets (one-way rules respected), solved with Google OR-Tools. Driving time estimated from speed limits at 75% of the limit; no traffic, parking or stops included. Road data: OpenStreetMap, 2023. Heights exaggerated ×2. Base map: Mapbox.</span>
-    <span>Data: Colliers Lithuania · Map: © Mapbox © OpenStreetMap contributors · <a href="/static/stock/vilnius_office_route.mp4" style="color:#c6ff00;pointer-events:auto">Watch the video</a></span>
+    <span>Data: Colliers Lithuania · Map: © Mapbox © OpenStreetMap contributors · <a href="/static/stock/vilnius_office_route.mp4" style="color:#5b85ff;text-shadow:0 0 8px rgba(28,84,243,.9);pointer-events:auto">Watch the video</a></span>
   </div>
 </div>
 
@@ -86,7 +89,7 @@ const TOTAL = ROUTE.cumkm[N];
 const NSTOPS = ROUTE.stopkm.length - 1;        // 150 stops; last entry = back at start
 const DURATION = 22;                            // seconds for the full loop
 const HEIGHT_SCALE = 2;
-const ACID = '#c6ff00';                         // one acid colour for every building and the route
+const ACID = '#1C54F3';                         // one neon blue for every building and the route
 const Z1 = ['CBD','Saltoniškės BD','Rinktinės BD'], Z2 = ['Central Vilnius','Business Triangle','Emerging Naujamiestis'];
 const zExpr = p => { const e = ['match', ['get', p]]; Z1.forEach(n => e.push(n, '#b8321f')); Z2.forEach(n => e.push(n, '#e8913a')); e.push('#8a847c'); return e; };
 
@@ -137,19 +140,21 @@ map.on('load', () => {
   map.addSource('b', { type: 'geojson', data: BLD });
   // glow under visited buildings (blurred halo of the footprint)
   map.addLayer({ id: 'bld-glow', type: 'line', source: 'b', filter: ['<', ['get', 'v'], 0],
-    paint: { 'line-color': ACID, 'line-width': 10, 'line-blur': 8, 'line-opacity': 0.6, 'line-emissive-strength': 1 } });
+    paint: { 'line-color': ACID, 'line-width': 14, 'line-blur': 10, 'line-opacity': 0.85, 'line-emissive-strength': 1 } });
   // not yet visited: low, dark; visited: full height, one acid colour, self-lit
   map.addLayer({ id: 'bld-off', type: 'fill-extrusion', source: 'b',
     paint: { 'fill-extrusion-color': '#3a4038', 'fill-extrusion-opacity': 0.75, 'fill-extrusion-height': ['*', ['get','h'], 0.25 * HEIGHT_SCALE] } });
   map.addLayer({ id: 'bld-on', type: 'fill-extrusion', source: 'b',
     paint: { 'fill-extrusion-color': ACID, 'fill-extrusion-opacity': 0.92, 'fill-extrusion-height': ['*', ['get','h'], HEIGHT_SCALE],
-             'fill-extrusion-vertical-gradient': true, 'fill-extrusion-emissive-strength': 0.9 } });
+             'fill-extrusion-vertical-gradient': true, 'fill-extrusion-emissive-strength': 1 } });
   // route: wide soft glow + bright core
   map.addSource('route', { type: 'geojson', data: { type: 'Feature', geometry: { type: 'LineString', coordinates: [] } } });
+  map.addLayer({ id: 'route-halo', type: 'line', source: 'route', layout: { 'line-cap': 'round', 'line-join': 'round' },
+    paint: { 'line-color': ACID, 'line-width': 30, 'line-blur': 24, 'line-opacity': 0.45, 'line-emissive-strength': 1 } });
   map.addLayer({ id: 'route-glow', type: 'line', source: 'route', layout: { 'line-cap': 'round', 'line-join': 'round' },
-    paint: { 'line-color': ACID, 'line-width': 12, 'line-blur': 10, 'line-opacity': 0.55, 'line-emissive-strength': 1 } });
+    paint: { 'line-color': ACID, 'line-width': 12, 'line-blur': 8, 'line-opacity': 0.9, 'line-emissive-strength': 1 } });
   map.addLayer({ id: 'route', type: 'line', source: 'route', layout: { 'line-cap': 'round', 'line-join': 'round' },
-    paint: { 'line-color': '#f4ffd0', 'line-width': 2.2, 'line-opacity': 0.95, 'line-emissive-strength': 1 } });
+    paint: { 'line-color': '#e3ebff', 'line-width': 2.4, 'line-opacity': 0.95, 'line-emissive-strength': 1 } });
   const el = document.createElement('div'); el.className = 'head-dot';
   dot = new mapboxgl.Marker({ element: el }).setLngLat(ROUTE.coords[0]).addTo(map);
   setQ(0);
